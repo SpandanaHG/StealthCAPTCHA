@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{% block title %}About - StealthCAPTCHA{% endblock %}
+
+{% block content %}
+<!-- About Header -->
+<section class="about-header">
+    <div class="about-background"></div>
+    <div class="about-overlay"></div>
+    <div class="container">
+        <div class="row align-items-center min-vh-50">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="display-4 fw-bold text-white mb-4">
+                    <i class="fas fa-info-circle text-primary me-3"></i>
+                    About StealthCAPTCHA
+                </h1>
+                <p class="lead text-light">
+                    Revolutionary invisible bot detection technology that protects websites 
+                    without compromising user experience through advanced behavioral analysis.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Technology Overview -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="text-center mb-5">The Technology Behind StealthCAPTCHA</h2>
+                
+                <div class="about-content">
+                    <h4><i class="fas fa-brain text-primary me-2"></i>Machine Learning Classification</h4>
+                    <p class="text-muted mb-4">
+                        Our system employs advanced Random Forest algorithms trained on extensive behavioral datasets. 
+                        The ML model analyzes over 20 different behavioral features including mouse velocity patterns, 
+                        click timing consistency, keystroke dynamics, and device fingerprints to achieve high-accuracy 
+                        human vs. bot classification.
+                    </p>
+                    
+                    <h4><i class="fas fa-mouse-pointer text-primary me-2"></i>Behavioral Pattern Analysis</h4>
+                    <p class="text-muted mb-4">
+                        Unlike traditional CAPTCHAs, StealthCAPTCHA continuously monitors natural user interactions:
+                    </p>
+                    <ul class="feature-list">
+                        <li><strong>Mouse Movement Patterns:</strong> Velocity consistency, trajectory smoothness, pause frequency</li>
+                        <li><strong>Click Behavior:</strong> Timing intervals, spatial distribution, rhythm consistency</li>
+                        <li><strong>Keystroke Dynamics:</strong> Dwell times, flight times, typing rhythm variance</li>
+                        <li><strong>Scroll Patterns:</strong> Speed variance, direction consistency, smoothness metrics</li>
+                    </ul>
+                    
+                    <h4><i class="fas fa-fingerprint text-primary me-2"></i>Device Fingerprinting</h4>
+                    <p class="text-muted mb-4">
+                        Advanced browser and device analysis including user agent patterns, screen resolution, 
+                        timezone, language preferences, and platform detection to identify suspicious automated behavior 
+                        while preserving user privacy.
+                    </p>
+                    
+                    <h4><i class="fas fa-tachometer-alt text-primary me-2"></i>Real-time Processing</h4>
+                    <p class="text-muted mb-4">
+                        Sub-second behavioral analysis with optimized feature extraction and prediction pipelines. 
+                        The system processes behavioral data in real-time, providing instant feedback for form submissions, 
+                        login attempts, and sensitive actions.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Technical Architecture -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <h2 class="text-center mb-5">System Architecture</h2>
+                
+                <div class="row g-4">
+                    <div class="col-lg-4">
+                        <div class="architecture-card">
+                            <div class="arch-icon">
+                                <i class="fab fa-js-square"></i>
+                            </div>
+                            <h5>Frontend Tracking</h5>
+                            <p class="text-muted">
+                                Invisible JavaScript behavioral tracking that monitors user interactions 
+                                without impacting performance or user experience.
+                            </p>
+                            <ul class="tech-list">
+                                <li>Vanilla JavaScript</li>
+                                <li>Event-driven collection</li>
+                                <li>Real-time data streaming</li>
+                                <li>Privacy-focused design</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="architecture-card">
+                            <div class="arch-icon">
+                                <i class="fab fa-python"></i>
+                            </div>
+                            <h5>Backend Processing</h5>
+                            <p class="text-muted">
+                                Flask-based API with PostgreSQL storage and scikit-learn ML models 
+                                for robust behavioral analysis and classification.
+                            </p>
+                            <ul class="tech-list">
+                                <li>Python Flask API</li>
+                                <li>PostgreSQL database</li>
+                                <li>Scikit-learn ML</li>
+                                <li>Feature engineering</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="architecture-card">
+                            <div class="arch-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h5>Analytics Dashboard</h5>
+                            <p class="text-muted">
+                                Comprehensive analytics and monitoring with real-time charts, 
+                                model performance metrics, and detection history.
+                            </p>
+                            <ul class="tech-list">
+                                <li>Chart.js visualizations</li>
+                                <li>Real-time updates</li>
+                                <li>Performance monitoring</li>
+                                <li>Historical analysis</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Benefits -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="text-center mb-5">Why Choose StealthCAPTCHA?</h2>
+                
+                <div class="benefits-grid">
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h5>Enhanced User Experience</h5>
+                            <p class="text-muted">
+                                No puzzles, no interruptions. Users interact naturally while being protected 
+                                from automated threats.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-shield-check"></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h5>Superior Security</h5>
+                            <p class="text-muted">
+                                Advanced ML algorithms provide better bot detection accuracy compared to 
+                                traditional CAPTCHA systems.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h5>Mobile Optimized</h5>
+                            <p class="text-muted">
+                                Works seamlessly across all devices and platforms, adapting behavioral 
+                                analysis for touch interfaces.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h5>Easy Integration</h5>
+                            <p class="text-muted">
+                                Simple API integration with just a few lines of code. Compatible with 
+                                any web framework or CMS.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-eye-slash"></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h5>Privacy Focused</h5>
+                            <p class="text-muted">
+                                Behavioral patterns are analyzed without storing personal information 
+                                or compromising user privacy.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit-item">
+                        <div class="benefit-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="benefit-content">
+                            <h5>Detailed Analytics</h5>
+                            <p class="text-muted">
+                                Comprehensive reporting and analytics to monitor threats and optimize 
+                                security performance.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Use Cases -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <h2 class="text-center mb-5">Use Cases</h2>
+                
+                <div class="row g-4">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="use-case-card">
+                            <div class="use-case-icon">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </div>
+                            <h5>Login Protection</h5>
+                            <p class="text-muted">
+                                Protect user accounts from brute force attacks and credential stuffing 
+                                without adding friction to legitimate logins.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4 col-md-6">
+                        <div class="use-case-card">
+                            <div class="use-case-icon">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <h5>Payment Security</h5>
+                            <p class="text-muted">
+                                Secure payment forms and checkout processes from automated fraud 
+                                while maintaining seamless user experience.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4 col-md-6">
+                        <div class="use-case-card">
+                            <div class="use-case-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <h5>Form Protection</h5>
+                            <p class="text-muted">
+                                Prevent spam submissions and automated form attacks on contact forms, 
+                                registration pages, and surveys.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4 col-md-6">
+                        <div class="use-case-card">
+                            <div class="use-case-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h5>E-commerce</h5>
+                            <p class="text-muted">
+                                Protect against inventory hoarding, fake reviews, and automated 
+                                purchasing without disrupting the shopping experience.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4 col-md-6">
+                        <div class="use-case-card">
+                            <div class="use-case-icon">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                            <h5>Ticket Sales</h5>
+                            <p class="text-muted">
+                                Prevent ticket scalping and automated purchasing while ensuring 
+                                legitimate customers can buy tickets easily.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4 col-md-6">
+                        <div class="use-case-card">
+                            <div class="use-case-icon">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <h5>Account Registration</h5>
+                            <p class="text-muted">
+                                Stop fake account creation and bot registrations while making 
+                                the signup process smooth for real users.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Academic Project -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="mb-4">Academic Research Project</h2>
+                <p class="lead text-muted mb-4">
+                    StealthCAPTCHA is developed as an academic research project to explore the intersection 
+                    of machine learning, cybersecurity, and user experience design.
+                </p>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="academic-stat">
+                            <h3 class="text-primary">20+</h3>
+                            <p class="text-muted">Behavioral Features</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="academic-stat">
+                            <h3 class="text-success">95%+</h3>
+                            <p class="text-muted">Detection Accuracy</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="academic-stat">
+                            <h3 class="text-info">&lt;100ms</h3>
+                            <p class="text-muted">Processing Time</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

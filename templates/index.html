@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}StealthCAPTCHA - Invisible Bot Detection System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-background"></div>
+    <div class="hero-overlay"></div>
+    <div class="container">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="display-4 fw-bold text-white mb-4">
+                        <i class="fas fa-shield-alt text-primary me-3"></i>
+                        StealthCAPTCHA
+                    </h1>
+                    <p class="lead text-light mb-4">
+                        Next-generation invisible bot detection using advanced behavioral analysis and machine learning. 
+                        Protect your website without disrupting user experience.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{{ url_for('demo') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-flask me-2"></i>Try Demo
+                        </a>
+                        <a href="{{ url_for('about') }}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-info-circle me-2"></i>Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-stats bg-dark bg-opacity-75 p-4 rounded-3">
+                    <h4 class="text-white mb-3">
+                        <i class="fas fa-chart-line me-2"></i>Live Detection Stats
+                    </h4>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="stat-item">
+                                <h3 class="text-success mb-1" id="human-count">-</h3>
+                                <small class="text-muted">Humans</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-item">
+                                <h3 class="text-danger mb-1" id="bot-count">-</h3>
+                                <small class="text-muted">Bots</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-item">
+                                <h3 class="text-info mb-1" id="total-count">-</h3>
+                                <small class="text-muted">Total</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center mb-5">
+                <h2 class="display-5 fw-bold">Why StealthCAPTCHA?</h2>
+                <p class="lead text-muted">Revolutionary bot detection that works silently in the background</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-eye-slash"></i>
+                    </div>
+                    <h4>Invisible Protection</h4>
+                    <p class="text-muted">
+                        No annoying puzzles or challenges. Users never know the system is working, 
+                        ensuring seamless user experience while maintaining robust security.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h4>AI-Powered Analysis</h4>
+                    <p class="text-muted">
+                        Advanced machine learning algorithms analyze mouse movements, click patterns, 
+                        and typing rhythms to distinguish human behavior from automated scripts.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <h4>Real-time Detection</h4>
+                    <p class="text-muted">
+                        Instant behavioral analysis and classification with sub-second response times. 
+                        Perfect for protecting login forms, payments, and sensitive actions.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-mouse-pointer"></i>
+                    </div>
+                    <h4>Behavioral Tracking</h4>
+                    <p class="text-muted">
+                        Monitors natural user interactions including mouse movements, click delays, 
+                        scroll patterns, and keystroke dynamics for comprehensive analysis.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-fingerprint"></i>
+                    </div>
+                    <h4>Device Fingerprinting</h4>
+                    <p class="text-muted">
+                        Advanced browser and device fingerprinting to identify suspicious patterns 
+                        and enhance detection accuracy across different environments.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <h4>Easy Integration</h4>
+                    <p class="text-muted">
+                        Simple API integration with just a few lines of JavaScript. 
+                        Compatible with any web framework and existing authentication systems.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center mb-5">
+                <h2 class="display-5 fw-bold">How It Works</h2>
+                <p class="lead text-muted">Understanding the technology behind invisible bot detection</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6 text-center">
+                <div class="process-step">
+                    <div class="step-number">1</div>
+                    <i class="fas fa-mouse-pointer step-icon"></i>
+                    <h5>Data Collection</h5>
+                    <p class="text-muted">Silently track user interactions and behavioral patterns</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 text-center">
+                <div class="process-step">
+                    <div class="step-number">2</div>
+                    <i class="fas fa-cogs step-icon"></i>
+                    <h5>Feature Extraction</h5>
+                    <p class="text-muted">Extract meaningful patterns from behavioral data</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 text-center">
+                <div class="process-step">
+                    <div class="step-number">3</div>
+                    <i class="fas fa-brain step-icon"></i>
+                    <h5>ML Analysis</h5>
+                    <p class="text-muted">Machine learning model classifies human vs bot behavior</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 text-center">
+                <div class="process-step">
+                    <div class="step-number">4</div>
+                    <i class="fas fa-shield-check step-icon"></i>
+                    <h5>Protection</h5>
+                    <p class="text-muted">Block suspicious activity while allowing legitimate users</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h2 class="display-5 fw-bold text-white mb-4">
+                    Ready to Protect Your Website?
+                </h2>
+                <p class="lead text-light mb-4">
+                    Experience the future of bot detection with our invisible, AI-powered solution.
+                </p>
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <a href="{{ url_for('demo') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-flask me-2"></i>Try Live Demo
+                    </a>
+                    <a href="{{ url_for('admin') }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-chart-bar me-2"></i>View Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Load live statistics
+function loadStats() {
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('human-count').textContent = data.human_detections || 0;
+            document.getElementById('bot-count').textContent = data.bot_detections || 0;
+            document.getElementById('total-count').textContent = data.total_detections || 0;
+        })
+        .catch(error => {
+            console.log('Stats loading error:', error);
+            document.getElementById('human-count').textContent = '0';
+            document.getElementById('bot-count').textContent = '0';
+            document.getElementById('total-count').textContent = '0';
+        });
+}
+
+// Load stats on page load and refresh every 30 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    loadStats();
+    setInterval(loadStats, 30000);
+});
+</script>
+{% endblock %}

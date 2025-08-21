@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - StealthCAPTCHA{% endblock %}
+
+{% block content %}
+<!-- Admin Header -->
+<section class="admin-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="fas fa-chart-bar text-primary me-3"></i>
+                    Analytics Dashboard
+                </h1>
+                <p class="lead text-muted">
+                    Monitor detection performance and analyze behavioral patterns in real-time.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Overview -->
+<section class="py-4 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card bg-primary">
+                    <div class="stat-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>{{ stats.total_detections }}</h3>
+                        <p>Total Detections</p>
+                        <small>Last 7 days</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card bg-success">
+                    <div class="stat-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>{{ stats.human_detections }}</h3>
+                        <p>Human Users</p>
+                        <small>{{ "%.1f"|format(stats.human_percentage) }}% of total</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card bg-danger">
+                    <div class="stat-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>{{ stats.bot_detections }}</h3>
+                        <p>Bots Blocked</p>
+                        <small>{{ "%.1f"|format(stats.bot_percentage) }}% of total</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card bg-info">
+                    <div class="stat-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>{{ "%.1f"|format(model_metrics.accuracy * 100) if model_metrics else "N/A" }}%</h3>
+                        <p>Model Accuracy</p>
+                        <small>{{ model_metrics.model_version if model_metrics else "No model" }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Charts Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Detection Trend Chart -->
+            <div class="col-lg-8">
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Detection Trends (24 Hours)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="trendChart" height="100"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Detection Distribution -->
+            <div class="col-lg-4">
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>
+                            Distribution
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Model Performance -->
+        {% if model_metrics %}
+        <div class="row mt-4">
+            <div class="col-lg-12">
+                <div class="performance-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cogs me-2"></i>
+                            Model Performance Metrics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-3">
+                                <div class="metric-item">
+                                    <h4 class="text-primary">{{ "%.3f"|format(model_metrics.accuracy) }}</h4>
+                                    <p class="text-muted mb-0">Accuracy</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-item">
+                                    <h4 class="text-success">{{ "%.3f"|format(model_metrics.precision) }}</h4>
+                                    <p class="text-muted mb-0">Precision</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-item">
+                                    <h4 class="text-warning">{{ "%.3f"|format(model_metrics.recall) }}</h4>
+                                    <p class="text-muted mb-0">Recall</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="metric-item">
+                                    <h4 class="text-info">{{ "%.3f"|format(model_metrics.f1_score) }}</h4>
+                                    <p class="text-muted mb-0">F1-Score</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <small class="text-muted">Training Samples: {{ model_metrics.training_samples }}</small>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Human Samples: {{ model_metrics.human_samples }}</small>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Bot Samples: {{ model_metrics.bot_samples }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Recent Detections -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="detections-table">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>
+                            Recent Detections
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_detections %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Session ID</th>
+                                        <th>Prediction</th>
+                                        <th>Confidence</th>
+                                        <th>Action Type</th>
+                                        <th>Processing Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for detection in recent_detections %}
+                                    <tr>
+                                        <td>{{ detection.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                        <td>
+                                            <code>{{ detection.session_id[:8] }}...</code>
+                                        </td>
+                                        <td>
+                                            {% if detection.prediction == 'human' %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-user me-1"></i>Human
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-robot me-1"></i>Bot
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ "%.1f"|format(detection.confidence * 100) }}%</td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ detection.action_type }}</span>
+                                        </td>
+                                        <td>{{ detection.processing_time_ms }}ms</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-2x mb-3"></i>
+                            <p>No recent detections found</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script>
+// Initialize charts with data
+document.addEventListener('DOMContentLoaded', function() {
+    // Load and display charts
+    loadDetectionCharts();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadDetectionCharts, 30000);
+});
+
+function loadDetectionCharts() {
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            updateTrendChart(data.hourly_data);
+            updateDistributionChart(data.human_detections, data.bot_detections);
+        })
+        .catch(error => {
+            console.error('Error loading chart data:', error);
+        });
+}
+
+function updateTrendChart(hourlyData) {
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    
+    // Prepare data for 24 hours
+    const hours = Array.from({length: 24}, (_, i) => i);
+    const humanData = hours.map(h => hourlyData[h] ? hourlyData[h].human : 0);
+    const botData = hours.map(h => hourlyData[h] ? hourlyData[h].bot : 0);
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: hours.map(h => h + ':00'),
+            datasets: [{
+                label: 'Human',
+                data: humanData,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.1
+            }, {
+                label: 'Bot',
+                data: botData,
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Hourly Detection Trends'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateDistributionChart(humanCount, botCount) {
+    const ctx = document.getElementById('distributionChart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Human', 'Bot'],
+            datasets: [{
+                data: [humanCount, botCount],
+                backgroundColor: ['#28a745', '#dc3545'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Detection Distribution'
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}
