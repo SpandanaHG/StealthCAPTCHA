@@ -106,10 +106,10 @@ class BehavioralAnalyzer:
         pause_frequency = pauses / len(mouse_movements) if len(mouse_movements) > 0 else 0
         
         return {
-            'mouse_velocity_avg': velocity_avg,
-            'mouse_velocity_std': velocity_std,
-            'mouse_trajectory_smoothness': smoothness,
-            'mouse_pause_frequency': pause_frequency
+            'mouse_velocity_avg': float(velocity_avg),
+            'mouse_velocity_std': float(velocity_std),
+            'mouse_trajectory_smoothness': float(smoothness),
+            'mouse_pause_frequency': float(pause_frequency)
         }
     
     def _analyze_click_patterns(self, click_patterns):
@@ -147,9 +147,9 @@ class BehavioralAnalyzer:
             spatial_distribution = 0
         
         return {
-            'click_frequency': frequency,
-            'click_rhythm_consistency': rhythm_consistency,
-            'click_spatial_distribution': spatial_distribution
+            'click_frequency': float(frequency),
+            'click_rhythm_consistency': float(rhythm_consistency),
+            'click_spatial_distribution': float(spatial_distribution)
         }
     
     def _analyze_keystroke_patterns(self, keystroke_patterns):
@@ -180,9 +180,9 @@ class BehavioralAnalyzer:
         dwell_variance = np.std(dwell_times) if dwell_times else 0
         
         return {
-            'typing_rhythm_consistency': rhythm_consistency,
-            'typing_speed': typing_speed,
-            'key_dwell_variance': dwell_variance
+            'typing_rhythm_consistency': float(rhythm_consistency),
+            'typing_speed': float(typing_speed),
+            'key_dwell_variance': float(dwell_variance)
         }
     
     def _analyze_scroll_patterns(self, scroll_patterns):
@@ -215,9 +215,9 @@ class BehavioralAnalyzer:
         smoothness = 1.0 / (1.0 + speed_variance / 100.0) if speed_variance > 0 else 1.0
         
         return {
-            'scroll_smoothness': smoothness,
-            'scroll_speed_variance': speed_variance,
-            'scroll_direction_consistency': direction_consistency
+            'scroll_smoothness': float(smoothness),
+            'scroll_speed_variance': float(speed_variance),
+            'scroll_direction_consistency': float(direction_consistency)
         }
     
     def extract_features(self, behavioral_data):
