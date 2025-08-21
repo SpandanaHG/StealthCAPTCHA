@@ -222,15 +222,20 @@ class BehavioralAnalyzer:
     
     def extract_features(self, behavioral_data):
         """Extract features from behavioral data for ML model"""
-        # Convert database model to dictionary format
-        data_dict = {
-            'mouse_movements': behavioral_data.mouse_movements or [],
-            'click_patterns': behavioral_data.click_patterns or [],
-            'keystroke_patterns': behavioral_data.keystroke_patterns or [],
-            'scroll_patterns': behavioral_data.scroll_patterns or [],
-            'user_agent': behavioral_data.user_agent or '',
-            'screen_resolution': behavioral_data.screen_resolution or '0x0'
-        }
+        # Handle both database model and dictionary formats
+        if hasattr(behavioral_data, 'mouse_movements'):
+            # Database model
+            data_dict = {
+                'mouse_movements': behavioral_data.mouse_movements or [],
+                'click_patterns': behavioral_data.click_patterns or [],
+                'keystroke_patterns': behavioral_data.keystroke_patterns or [],
+                'scroll_patterns': behavioral_data.scroll_patterns or [],
+                'user_agent': behavioral_data.user_agent or '',
+                'screen_resolution': behavioral_data.screen_resolution or '0x0'
+            }
+        else:
+            # Dictionary format from API
+            data_dict = behavioral_data
         
         # Use the ML model's feature extraction method
         from ml_model import MLModel

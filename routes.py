@@ -80,21 +80,23 @@ def collect_behavioral_data():
     try:
         data = request.get_json()
         
-        if not data or 'session_id' not in data:
+        if not data or 'sessionId' not in data:
             return jsonify({'error': 'Invalid data'}), 400
+        
+        session_id = data['sessionId']
         
         # Create new behavioral data record
         behavioral_data = BehavioralData(
-            session_id=data['session_id'],
-            mouse_movements=data.get('mouse_movements', []),
-            click_patterns=data.get('click_patterns', []),
-            scroll_patterns=data.get('scroll_patterns', []),
-            keystroke_patterns=data.get('keystroke_patterns', []),
+            session_id=session_id,
+            mouse_movements=data.get('mouseMovements', []),
+            click_patterns=data.get('clickPatterns', []),
+            scroll_patterns=data.get('scrollPatterns', []),
+            keystroke_patterns=data.get('keystrokePatterns', []),
             user_agent=request.headers.get('User-Agent'),
-            screen_resolution=data.get('screen_resolution'),
-            timezone=data.get('timezone'),
-            language=data.get('language'),
-            platform=data.get('platform'),
+            screen_resolution=data.get('deviceFingerprint', {}).get('screenResolution'),
+            timezone=data.get('deviceFingerprint', {}).get('timezone'),
+            language=data.get('deviceFingerprint', {}).get('language'),
+            platform=data.get('deviceFingerprint', {}).get('platform'),
             ip_address=request.remote_addr
         )
         
@@ -123,10 +125,10 @@ def detect_bot():
     try:
         data = request.get_json()
         
-        if not data or 'session_id' not in data:
+        if not data or 'sessionId' not in data:
             return jsonify({'error': 'Invalid data'}), 400
         
-        session_id = data['session_id']
+        session_id = data['sessionId']
         
         # Get recent behavioral data for this session
         behavioral_data = BehavioralData.query.filter_by(
@@ -209,14 +211,14 @@ def demo_submit():
     """Demo form submission with bot detection"""
     try:
         form_data = request.get_json()
-        session_id = form_data.get('session_id')
+        session_id = form_data.get('sessionId')
         
         if not session_id:
             return jsonify({'error': 'Session ID required'}), 400
         
         # Perform bot detection
         detection_data = {
-            'session_id': session_id,
+            'sessionId': session_id,
             'page_url': '/demo',
             'action_type': 'form_submit'
         }

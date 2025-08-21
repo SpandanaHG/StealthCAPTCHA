@@ -42,16 +42,16 @@
 
         // Generate or retrieve session ID
         behavioralData.sessionId = generateSessionId();
-        
+
         // Collect device fingerprint
         collectDeviceFingerprint();
-        
+
         // Start event listeners
         setupEventListeners();
-        
+
         // Start data collection timer
         startDataCollection();
-        
+
         isTracking = true;
         console.log('StealthCAPTCHA: Behavioral tracking initialized');
     }
@@ -91,27 +91,27 @@
     function setupEventListeners() {
         // Mouse movement tracking
         document.addEventListener('mousemove', handleMouseMove, { passive: true });
-        
+
         // Click tracking
         document.addEventListener('click', handleClick, { passive: true });
         document.addEventListener('mousedown', handleMouseDown, { passive: true });
         document.addEventListener('mouseup', handleMouseUp, { passive: true });
-        
+
         // Keyboard tracking
         document.addEventListener('keydown', handleKeyDown, { passive: true });
         document.addEventListener('keyup', handleKeyUp, { passive: true });
-        
+
         // Scroll tracking
         document.addEventListener('scroll', handleScroll, { passive: true });
         window.addEventListener('wheel', handleWheel, { passive: true });
-        
+
         // Focus and blur events
         window.addEventListener('focus', handleWindowFocus, { passive: true });
         window.addEventListener('blur', handleWindowBlur, { passive: true });
-        
+
         // Page visibility changes
         document.addEventListener('visibilitychange', handleVisibilityChange, { passive: true });
-        
+
         // Touch events for mobile
         document.addEventListener('touchstart', handleTouchStart, { passive: true });
         document.addEventListener('touchmove', handleTouchMove, { passive: true });
@@ -134,11 +134,11 @@
         if (lastMouseEvent) {
             const timeDiff = now - lastMouseEvent.timestamp;
             const distance = Math.sqrt(
-                Math.pow(mouseEvent.x - lastMouseEvent.x, 2) + 
+                Math.pow(mouseEvent.x - lastMouseEvent.x, 2) +
                 Math.pow(mouseEvent.y - lastMouseEvent.y, 2)
             );
             mouseEvent.velocity = timeDiff > 0 ? distance / timeDiff : 0;
-            mouseEvent.acceleration = lastMouseEvent.velocity ? 
+            mouseEvent.acceleration = lastMouseEvent.velocity ?
                 (mouseEvent.velocity - lastMouseEvent.velocity) / timeDiff : 0;
         }
 
@@ -212,7 +212,7 @@
      */
     function handleKeyDown(event) {
         keystrokeStartTime = Date.now();
-        
+
         const keystrokeEvent = {
             key: event.key.length === 1 ? 'char' : event.key, // Anonymize actual characters
             keyCode: event.keyCode,
@@ -358,51 +358,44 @@
     }
 
     /**
-     * Send behavioral data to server
+     * Send collected behavioral data to server
      */
     function sendBehavioralData() {
-        if (!behavioralData.sessionId) return;
+        if (!behavioralData.sessionId || behavioralData.mouseMovements.length === 0) return;
 
-        // Prepare data payload
-        const payload = {
-            session_id: behavioralData.sessionId,
-            mouse_movements: behavioralData.mouseMovements.slice(),
-            click_patterns: behavioralData.clickPatterns.slice(),
-            keystroke_patterns: behavioralData.keystrokePatterns.slice(),
-            scroll_patterns: behavioralData.scrollPatterns.slice(),
-            screen_resolution: behavioralData.deviceFingerprint.screenResolution,
-            timezone: behavioralData.deviceFingerprint.timezone,
-            language: behavioralData.deviceFingerprint.language,
-            platform: behavioralData.deviceFingerprint.platform,
-            window_events: behavioralData.windowEvents || [],
-            visibility_events: behavioralData.visibilityEvents || [],
-            touch_events: behavioralData.touchEvents || [],
-            session_duration: Date.now() - behavioralData.startTime
+        const dataToSend = {
+            sessionId: behavioralData.sessionId,
+            mouseMovements: behavioralData.mouseMovements,
+            clickPatterns: behavioralData.clickPatterns,
+            keystrokePatterns: behavioralData.keystrokePatterns,
+            scrollPatterns: behavioralData.scrollPatterns,
+            deviceFingerprint: behavioralData.deviceFingerprint,
+            timestamp: Date.now()
         };
 
-        // Send data via fetch API
         fetch(CONFIG.apiEndpoint, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(dataToSend)
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // Clear sent data but keep some recent events for continuity
-                behavioralData.mouseMovements = behavioralData.mouseMovements.slice(-10);
-                behavioralData.clickPatterns = behavioralData.clickPatterns.slice(-5);
-                behavioralData.keystrokePatterns = behavioralData.keystrokePatterns.slice(-10);
-                behavioralData.scrollPatterns = behavioralData.scrollPatterns.slice(-5);
-                behavioralData.windowEvents = [];
-                behavioralData.visibilityEvents = [];
-                behavioralData.touchEvents = [];
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
+            return response.json();
+        })
+        .then(data => {
+            console.log('StealthCAPTCHA: Data sent successfully', data);
+            // Clear sent data but keep some for continuity
+            behavioralData.mouseMovements = behavioralData.mouseMovements.slice(-10);
+            behavioralData.clickPatterns = behavioralData.clickPatterns.slice(-10);
+            behavioralData.keystrokePatterns = behavioralData.keystrokePatterns.slice(-10);
+            behavioralData.scrollPatterns = behavioralData.scrollPatterns.slice(-10);
         })
         .catch(error => {
-            console.log('StealthCAPTCHA: Data collection error (silent)', error.message);
+            console.log('StealthCAPTCHA: Data collection error', error.message);
         });
     }
 
@@ -421,7 +414,7 @@
         // Calculate click intervals
         const clickIntervals = [];
         for (let i = 1; i < behavioralData.clickPatterns.length; i++) {
-            const interval = behavioralData.clickPatterns[i].timestamp - 
+            const interval = behavioralData.clickPatterns[i].timestamp -
                            behavioralData.clickPatterns[i-1].timestamp;
             clickIntervals.push(interval);
         }
@@ -441,11 +434,11 @@
             clickEventCount: behavioralData.clickPatterns.length,
             keystrokeEventCount: behavioralData.keystrokePatterns.length,
             scrollEventCount: behavioralData.scrollPatterns.length,
-            avgMouseVelocity: mouseVelocities.length > 0 ? 
+            avgMouseVelocity: mouseVelocities.length > 0 ?
                 mouseVelocities.reduce((a, b) => a + b, 0) / mouseVelocities.length : 0,
-            avgClickInterval: clickIntervals.length > 0 ? 
+            avgClickInterval: clickIntervals.length > 0 ?
                 clickIntervals.reduce((a, b) => a + b, 0) / clickIntervals.length : 0,
-            avgKeystrokeInterval: keystrokeIntervals.length > 0 ? 
+            avgKeystrokeInterval: keystrokeIntervals.length > 0 ?
                 keystrokeIntervals.reduce((a, b) => a + b, 0) / keystrokeIntervals.length : 0
         };
     }
@@ -460,8 +453,8 @@
         }
 
         const detectionPayload = {
-            session_id: behavioralData.sessionId,
-            page_url: window.location.href,
+            sessionId: behavioralData.sessionId,
+            page_url: window.location.pathname,
             action_type: 'general'
         };
 
