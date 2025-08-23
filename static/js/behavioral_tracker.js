@@ -358,27 +358,36 @@
     }
 
     /**
-     * Send collected behavioral data to server
+     * Send behavioral data to server
      */
     function sendBehavioralData() {
-        if (!behavioralData.sessionId || behavioralData.mouseMovements.length === 0) return;
+        if (!behavioralData.sessionId || !isTracking) return;
 
-        const dataToSend = {
+        // Prepare data payload
+        const payload = {
             sessionId: behavioralData.sessionId,
-            mouseMovements: behavioralData.mouseMovements,
-            clickPatterns: behavioralData.clickPatterns,
-            keystrokePatterns: behavioralData.keystrokePatterns,
-            scrollPatterns: behavioralData.scrollPatterns,
+            mouseMovements: behavioralData.mouseMovements.slice(-CONFIG.maxMouseEvents),
+            clickPatterns: behavioralData.clickPatterns.slice(-CONFIG.maxClickEvents),
+            keystrokePatterns: behavioralData.keystrokePatterns.slice(-CONFIG.maxKeystrokeEvents),
+            scrollPatterns: behavioralData.scrollPatterns.slice(-CONFIG.maxScrollEvents),
             deviceFingerprint: behavioralData.deviceFingerprint,
             timestamp: Date.now()
         };
+
+        console.log('StealthCAPTCHA: Sending behavioral data', {
+            sessionId: payload.sessionId,
+            mouseEvents: payload.mouseMovements.length,
+            clickEvents: payload.clickPatterns.length,
+            keystrokeEvents: payload.keystrokePatterns.length,
+            scrollEvents: payload.scrollPatterns.length
+        });
 
         fetch(CONFIG.apiEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(dataToSend)
+            body: JSON.stringify(payload)
         })
         .then(response => {
             if (!response.ok) {
