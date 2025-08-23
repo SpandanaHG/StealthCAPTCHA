@@ -1,0 +1,86 @@
+
+{% extends "base.html" %}
+
+{% block title %}Login - StealthCAPTCHA{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4><i class="fas fa-sign-in-alt me-2"></i>Login</h4>
+                </div>
+                <div class="card-body">
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div id="loginMessage" class="mt-3"></div>
+                    
+                    <div class="text-center mt-3">
+                        <small>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></small>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <small>
+                            <strong>Admin Access:</strong><br>
+                            Username: <code>admin</code><br>
+                            Password: <code>admin</code>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = {
+        username: formData.get('username'),
+        password: formData.get('password')
+    };
+    
+    const messageDiv = document.getElementById('loginMessage');
+    
+    try {
+        const response = await fetch('{{ url_for("login") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            messageDiv.innerHTML = '<div class="alert alert-success">Login successful! Redirecting...</div>';
+            setTimeout(() => {
+                window.location.href = result.redirect;
+            }, 1000);
+        } else {
+            messageDiv.innerHTML = `<div class="alert alert-danger">${result.error}</div>`;
+        }
+    } catch (error) {
+        messageDiv.innerHTML = '<div class="alert alert-danger">Login failed. Please try again.</div>';
+    }
+});
+</script>
+{% endblock %}

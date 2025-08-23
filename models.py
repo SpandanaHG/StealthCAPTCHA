@@ -1,6 +1,8 @@
 from app import db
 from datetime import datetime
 from sqlalchemy import func
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 
 class BehavioralData(db.Model):
     __tablename__ = 'behavioral_data'
@@ -83,3 +85,81 @@ class ModelMetrics(db.Model):
     
     def __repr__(self):
         return f'<ModelMetrics v{self.model_version}: {self.accuracy:.3f}>'
+
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(255), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+    is_blocked = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime)
+    
+    # Behavioral classification results
+    total_sessions = db.Column(db.Integer, default=0)
+    human_classifications = db.Column(db.Integer, default=0)
+    bot_classifications = db.Column(db.Integer, default=0)
+    avg_confidence_score = db.Column(db.Float, default=0.0)
+    
+    # Relationship to tasks
+    tasks = db.relationship('Task', backref='user', lazy=True, cascade='all, delete-orphan')
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+    
+    def update_behavioral_stats(self, prediction, confidence):
+        """Update user's behavioral classification statistics"""
+        self.total_sessions += 1
+        if prediction == 'human':
+            self.human_classifications += 1
+        else:
+            self.bot_classifications += 1
+        
+        # Update average confidence score
+        if self.total_sessions == 1:
+            self.avg_confidence_score = confidence
+        else:
+            self.avg_confidence_score = (
+                (self.avg_confidence_score * (self.total_sessions - 1) + confidence) 
+                / self.total_sessions
+            )
+    
+    @property
+    def bot_percentage(self):
+        if self.total_sessions == 0:
+            return 0
+        return (self.bot_classifications / self.total_sessions) * 100
+    
+    @property
+    def is_likely_bot(self):
+        return self.bot_percentage > 60  # Threshold for bot classification
+    
+    def __repr__(self):
+        return f'<User {self.username}>'
+
+class Task(db.Model):
+    __tablename__ = 'tasks'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    task_type = db.Column(db.String(50), nullable=False)  # 'form_fill', 'click_sequence', 'typing_test'
+    status = db.Column(db.String(20), default='pending')  # 'pending', 'completed', 'failed'
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_at = db.Column(db.DateTime)
+    
+    # Task performance metrics
+    completion_time_ms = db.Column(db.Integer)
+    mouse_events = db.Column(db.Integer, default=0)
+    keyboard_events = db.Column(db.Integer, default=0)
+    behavioral_score = db.Column(db.Float)  # Human-likeness score
+    
+    def __repr__(self):
+        return f'<Task {self.title} - {self.status}>'

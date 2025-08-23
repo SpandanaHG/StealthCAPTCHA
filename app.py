@@ -2,6 +2,7 @@ import os
 import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -28,6 +29,17 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 # Initialize the app with the extension
 db.init_app(app)
 
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Please log in to access this page.'
+
+@login_manager.user_loader
+def load_user(user_id):
+    from models import User
+    return User.query.get(int(user_id))
+
 with app.app_context():
     # Import models to create tables
     import models
@@ -35,6 +47,20 @@ with app.app_context():
     
     # Create all tables
     db.create_all()
+    
+    # Create admin user if it doesn't exist
+    from models import User
+    admin_user = User.query.filter_by(username='admin').first()
+    if not admin_user:
+        admin_user = User(
+            username='admin',
+            email='admin@stealthcaptcha.com',
+            is_admin=True
+        )
+        admin_user.set_password('admin')
+        db.session.add(admin_user)
+        db.session.commit()
+        logging.info("Admin user created (username: admin, password: admin)")
     
     # Initialize ML model
     from ml_model import MLModel

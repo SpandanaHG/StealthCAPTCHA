@@ -1,0 +1,149 @@
+
+{% extends "base.html" %}
+
+{% block title %}User Dashboard - StealthCAPTCHA{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-tachometer-alt me-2"></i>Welcome, {{ current_user.username }}!</h2>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Behavioral Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ current_user.total_sessions }}</h4>
+                            <p class="mb-0">Total Sessions</p>
+                        </div>
+                        <i class="fas fa-chart-line fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ current_user.human_classifications }}</h4>
+                            <p class="mb-0">Human Classifications</p>
+                        </div>
+                        <i class="fas fa-user fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ "%.1f"|format(current_user.avg_confidence_score * 100) }}%</h4>
+                            <p class="mb-0">Avg Confidence</p>
+                        </div>
+                        <i class="fas fa-percentage fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card {% if current_user.is_likely_bot %}bg-danger{% else %}bg-info{% endif %} text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ "Bot" if current_user.is_likely_bot else "Human" }}</h4>
+                            <p class="mb-0">Classification</p>
+                        </div>
+                        <i class="fas {% if current_user.is_likely_bot %}fa-robot{% else %}fa-user-check{% endif %} fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tasks Section -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-tasks me-2"></i>Behavioral Analysis Tasks</h5>
+                    <small class="text-muted">Complete these tasks to help improve our detection algorithms</small>
+                </div>
+                <div class="card-body">
+                    {% if tasks %}
+                    <div class="row">
+                        {% for task in tasks %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-left-{% if task.status == 'completed' %}success{% elif task.status == 'failed' %}danger{% else %}primary{% endif %}">
+                                <div class="card-body">
+                                    <h6>{{ task.title }}</h6>
+                                    <p class="text-muted small">{{ task.description }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-{% if task.status == 'completed' %}success{% elif task.status == 'failed' %}danger{% else %}primary{% endif %}">
+                                            {{ task.status.title() }}
+                                        </span>
+                                        {% if task.status == 'pending' %}
+                                        <a href="{{ url_for('perform_task', task_id=task.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-play me-1"></i>Start
+                                        </a>
+                                        {% elif task.status == 'completed' %}
+                                        <small class="text-success">
+                                            <i class="fas fa-check me-1"></i>{{ "%.1f"|format(task.behavioral_score * 100) }}% confidence
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                        <h5>No tasks available</h5>
+                        <p class="text-muted">New tasks will be assigned automatically.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-history me-2"></i>Recent Activity</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_detections %}
+                    {% for detection in recent_detections %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <small class="text-muted">{{ detection.timestamp.strftime('%m/%d %H:%M') }}</small>
+                            <br>
+                            <span class="badge bg-{% if detection.prediction == 'human' %}success{% else %}danger{% endif %}">
+                                {{ detection.prediction.title() }}
+                            </span>
+                        </div>
+                        <small>{{ "%.1f"|format(detection.confidence * 100) }}%</small>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted">No recent activity</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

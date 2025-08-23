@@ -1,0 +1,81 @@
+
+{% extends "base.html" %}
+
+{% block title %}Register - StealthCAPTCHA{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white text-center">
+                    <h4><i class="fas fa-user-plus me-2"></i>Register</h4>
+                </div>
+                <div class="card-body">
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-user-plus me-1"></i>Register
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div id="registerMessage" class="mt-3"></div>
+                    
+                    <div class="text-center mt-3">
+                        <small>Already have an account? <a href="{{ url_for('login') }}">Login here</a></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = {
+        username: formData.get('username'),
+        email: formData.get('email'),
+        password: formData.get('password')
+    };
+    
+    const messageDiv = document.getElementById('registerMessage');
+    
+    try {
+        const response = await fetch('{{ url_for("register") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            messageDiv.innerHTML = '<div class="alert alert-success">Registration successful! <a href="{{ url_for("login") }}">Please login</a></div>';
+            document.getElementById('registerForm').reset();
+        } else {
+            messageDiv.innerHTML = `<div class="alert alert-danger">${result.error}</div>`;
+        }
+    } catch (error) {
+        messageDiv.innerHTML = '<div class="alert alert-danger">Registration failed. Please try again.</div>';
+    }
+});
+</script>
+{% endblock %}
