@@ -1,3 +1,4 @@
+
 from flask import render_template, request, jsonify, session
 from app import app, db
 from models import BehavioralData, DetectionLog, ModelMetrics
@@ -17,21 +18,21 @@ def index():
     """Main landing page"""
     return render_template('index.html')
 
-@app.route('/demo')
-def demo():
-    """Demo page with forms to test bot detection"""
+@app.route('/research')
+def research():
+    """Research interface for behavioral biometrics testing"""
     if 'session_id' not in session:
         session['session_id'] = str(uuid.uuid4())
-    return render_template('demo.html', session_id=session['session_id'])
+    return render_template('research.html', session_id=session['session_id'])
 
-@app.route('/about')
-def about():
-    """About page explaining the technology"""
-    return render_template('about.html')
+@app.route('/methodology')
+def methodology():
+    """Research methodology and technical details"""
+    return render_template('methodology.html')
 
-@app.route('/admin')
-def admin():
-    """Admin dashboard for viewing detection results"""
+@app.route('/analytics')
+def analytics():
+    """Research analytics dashboard for viewing detection results"""
     # Get recent detection statistics
     today = datetime.utcnow().date()
     week_ago = today - timedelta(days=7)
@@ -69,7 +70,7 @@ def admin():
         'bot_percentage': (bot_detections / total_detections * 100) if total_detections > 0 else 0
     }
     
-    return render_template('admin.html', 
+    return render_template('analytics.html', 
                          recent_detections=recent_detections,
                          stats=stats,
                          model_metrics=latest_metrics)
@@ -154,7 +155,7 @@ def detect_bot():
             prediction=prediction,
             confidence=confidence,
             page_url=data.get('page_url'),
-            action_type=data.get('action_type', 'general'),
+            action_type=data.get('action_type', 'research_test'),
             processing_time_ms=int((time.time() - start_time) * 1000)
         )
         
@@ -206,21 +207,21 @@ def get_stats():
         logging.error(f"Error getting stats: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
-@app.route('/api/demo_submit', methods=['POST'])
-def demo_submit():
-    """Demo form submission with bot detection"""
+@app.route('/api/research_test', methods=['POST'])
+def research_test():
+    """Research testing endpoint for behavioral analysis"""
     try:
-        form_data = request.get_json()
-        session_id = form_data.get('sessionId')
+        test_data = request.get_json()
+        session_id = test_data.get('sessionId')
         
         if not session_id:
             return jsonify({'error': 'Session ID required'}), 400
         
-        # Perform bot detection
+        # Perform behavioral analysis
         detection_data = {
             'sessionId': session_id,
-            'page_url': '/demo',
-            'action_type': 'form_submit'
+            'page_url': '/research',
+            'action_type': 'behavioral_analysis'
         }
         
         # Get recent behavioral data
@@ -237,8 +238,8 @@ def demo_submit():
                 session_id=session_id,
                 prediction=prediction,
                 confidence=confidence,
-                page_url='/demo',
-                action_type='form_submit'
+                page_url='/research',
+                action_type='behavioral_analysis'
             )
             
             db.session.add(detection_log)
@@ -246,19 +247,20 @@ def demo_submit():
             
             return jsonify({
                 'success': True,
-                'message': 'Form submitted successfully!',
-                'detection': {
-                    'prediction': prediction,
-                    'confidence': confidence,
-                    'is_human': prediction == 'human'
+                'message': 'Behavioral analysis completed successfully',
+                'analysis': {
+                    'classification': prediction,
+                    'confidence_score': confidence,
+                    'is_human_behavior': prediction == 'human',
+                    'behavioral_features': len(features[0]) if features else 0
                 }
             })
         else:
             return jsonify({
                 'success': False,
-                'message': 'Insufficient behavioral data for verification'
+                'message': 'Insufficient behavioral data for analysis'
             }), 400
     
     except Exception as e:
-        logging.error(f"Error in demo submit: {str(e)}")
+        logging.error(f"Error in research test: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500

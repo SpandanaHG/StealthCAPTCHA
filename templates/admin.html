@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard - StealthCAPTCHA{% endblock %}
+{% block title %}Research Analytics - Behavioral Biometrics{% endblock %}
 
 {% block content %}
-<!-- Admin Header -->
-<section class="admin-header">
+<!-- Analytics Header -->
+<section class="py-5 bg-dark text-white">
     <div class="container">
         <div class="row">
-            <div class="col-lg-12">
+            <div class="col-lg-12 text-center">
                 <h1 class="display-4 fw-bold mb-4">
-                    <i class="fas fa-chart-bar text-primary me-3"></i>
-                    Analytics Dashboard
+                    <i class="fas fa-chart-bar me-3"></i>
+                    Research Analytics Dashboard
                 </h1>
-                <p class="lead text-muted">
-                    Monitor detection performance and analyze behavioral patterns in real-time.
+                <p class="lead">
+                    Comprehensive analysis of behavioral biometric data and model performance
                 </p>
             </div>
         </div>
@@ -21,57 +21,55 @@
 </section>
 
 <!-- Statistics Overview -->
-<section class="py-4 bg-light">
+<section class="py-5">
     <div class="container">
         <div class="row g-4">
             <div class="col-lg-3 col-md-6">
-                <div class="stat-card bg-primary">
+                <div class="stat-card bg-primary text-white">
                     <div class="stat-icon">
-                        <i class="fas fa-eye"></i>
+                        <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-content">
                         <h3>{{ stats.total_detections }}</h3>
-                        <p>Total Detections</p>
-                        <small>Last 7 days</small>
+                        <p>Total Samples</p>
                     </div>
                 </div>
             </div>
 
             <div class="col-lg-3 col-md-6">
-                <div class="stat-card bg-success">
+                <div class="stat-card bg-success text-white">
                     <div class="stat-icon">
-                        <i class="fas fa-user"></i>
+                        <i class="fas fa-user-check"></i>
                     </div>
                     <div class="stat-content">
                         <h3>{{ stats.human_detections }}</h3>
-                        <p>Human Users</p>
-                        <small>{{ "%.1f"|format(stats.human_percentage) }}% of total</small>
+                        <p>Human Classified</p>
+                        <small>{{ "%.1f"|format(stats.human_percentage) }}%</small>
                     </div>
                 </div>
             </div>
 
             <div class="col-lg-3 col-md-6">
-                <div class="stat-card bg-danger">
+                <div class="stat-card bg-danger text-white">
                     <div class="stat-icon">
                         <i class="fas fa-robot"></i>
                     </div>
                     <div class="stat-content">
                         <h3>{{ stats.bot_detections }}</h3>
-                        <p>Bots Blocked</p>
-                        <small>{{ "%.1f"|format(stats.bot_percentage) }}% of total</small>
+                        <p>Bot Classified</p>
+                        <small>{{ "%.1f"|format(stats.bot_percentage) }}%</small>
                     </div>
                 </div>
             </div>
 
             <div class="col-lg-3 col-md-6">
-                <div class="stat-card bg-info">
+                <div class="stat-card bg-info text-white">
                     <div class="stat-icon">
                         <i class="fas fa-brain"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>{{ "%.1f"|format(model_metrics.accuracy * 100) if model_metrics else "N/A" }}%</h3>
+                        <h3>{% if model_metrics %}{{ "%.3f"|format(model_metrics.accuracy) }}{% else %}N/A{% endif %}</h3>
                         <p>Model Accuracy</p>
-                        <small>{{ model_metrics.model_version if model_metrics else "No model" }}</small>
                     </div>
                 </div>
             </div>
@@ -79,160 +77,126 @@
     </div>
 </section>
 
-<!-- Charts Section -->
-<section class="py-5">
-    <div class="container">
-        <div class="row g-4">
-            <!-- Detection Trend Chart -->
-            <div class="col-lg-8">
-                <div class="chart-card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-chart-line me-2"></i>
-                            Detection Trends (24 Hours)
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="hourlyChart" height="100"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Detection Distribution -->
-            <div class="col-lg-4">
-                <div class="chart-card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-chart-pie me-2"></i>
-                            Distribution
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="distributionChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Model Performance -->
-        {% if model_metrics %}
-        <div class="row mt-4">
-            <div class="col-lg-12">
-                <div class="performance-card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-cogs me-2"></i>
-                            Model Performance Metrics
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-4">
-                            <div class="col-md-3">
-                                <div class="metric-item">
-                                    <h4 class="text-primary">{{ "%.3f"|format(model_metrics.accuracy) }}</h4>
-                                    <p class="text-muted mb-0">Accuracy</p>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="metric-item">
-                                    <h4 class="text-success">{{ "%.3f"|format(model_metrics.precision) }}</h4>
-                                    <p class="text-muted mb-0">Precision</p>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="metric-item">
-                                    <h4 class="text-warning">{{ "%.3f"|format(model_metrics.recall) }}</h4>
-                                    <p class="text-muted mb-0">Recall</p>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="metric-item">
-                                    <h4 class="text-info">{{ "%.3f"|format(model_metrics.f1_score) }}</h4>
-                                    <p class="text-muted mb-0">F1-Score</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-3">
-                            <div class="col-md-4">
-                                <small class="text-muted">Training Samples: {{ model_metrics.training_samples }}</small>
-                            </div>
-                            <div class="col-md-4">
-                                <small class="text-muted">Human Samples: {{ model_metrics.human_samples }}</small>
-                            </div>
-                            <div class="col-md-4">
-                                <small class="text-muted">Bot Samples: {{ model_metrics.bot_samples }}</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-</section>
-
-<!-- Recent Detections -->
+<!-- Model Performance -->
+{% if model_metrics %}
 <section class="py-5 bg-light">
     <div class="container">
         <div class="row">
             <div class="col-lg-12">
-                <div class="detections-table">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-list me-2"></i>
-                            Recent Detections
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {% if recent_detections %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Timestamp</th>
-                                        <th>Session ID</th>
-                                        <th>Prediction</th>
-                                        <th>Confidence</th>
-                                        <th>Action Type</th>
-                                        <th>Processing Time</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for detection in recent_detections %}
-                                    <tr>
-                                        <td>{{ detection.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                                        <td>
-                                            <code>{{ detection.session_id[:8] }}...</code>
-                                        </td>
-                                        <td>
-                                            {% if detection.prediction == 'human' %}
-                                                <span class="badge bg-success">
-                                                    <i class="fas fa-user me-1"></i>Human
-                                                </span>
-                                            {% else %}
-                                                <span class="badge bg-danger">
-                                                    <i class="fas fa-robot me-1"></i>Bot
-                                                </span>
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ "%.1f"|format(detection.confidence * 100) }}%</td>
-                                        <td>
-                                            <span class="badge bg-secondary">{{ detection.action_type }}</span>
-                                        </td>
-                                        <td>{{ detection.processing_time_ms }}ms</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                <h2 class="mb-4">Machine Learning Model Performance</h2>
+                <div class="row g-4">
+                    <div class="col-lg-8">
+                        <div class="performance-card">
+                            <h5>Classification Metrics</h5>
+                            <div class="row">
+                                <div class="col-md-3 text-center">
+                                    <div class="metric-item">
+                                        <h4 class="text-primary">{{ "%.3f"|format(model_metrics.precision) }}</h4>
+                                        <p>Precision</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <div class="metric-item">
+                                        <h4 class="text-success">{{ "%.3f"|format(model_metrics.recall) }}</h4>
+                                        <p>Recall</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <div class="metric-item">
+                                        <h4 class="text-warning">{{ "%.3f"|format(model_metrics.f1_score) }}</h4>
+                                        <p>F1-Score</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <div class="metric-item">
+                                        <h4 class="text-info">{{ "%.3f"|format(model_metrics.accuracy) }}</h4>
+                                        <p>Accuracy</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        {% else %}
-                        <div class="text-center text-muted py-4">
-                            <i class="fas fa-inbox fa-2x mb-3"></i>
-                            <p>No recent detections found</p>
-                        </div>
-                        {% endif %}
                     </div>
+
+                    <div class="col-lg-4">
+                        <div class="training-info">
+                            <h5>Training Information</h5>
+                            <ul class="list-unstyled">
+                                <li><strong>Total Samples:</strong> {{ model_metrics.training_samples }}</li>
+                                <li><strong>Human Samples:</strong> {{ model_metrics.human_samples }}</li>
+                                <li><strong>Bot Samples:</strong> {{ model_metrics.bot_samples }}</li>
+                                <li><strong>Model Version:</strong> {{ model_metrics.model_version }}</li>
+                                <li><strong>Training Date:</strong> {{ model_metrics.timestamp.strftime('%Y-%m-%d %H:%M') }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Recent Classifications -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <h2 class="mb-4">Recent Behavioral Classifications</h2>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Session ID</th>
+                                <th>Classification</th>
+                                <th>Confidence</th>
+                                <th>Processing Time</th>
+                                <th>Action Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detection in recent_detections %}
+                            <tr>
+                                <td>{{ detection.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td class="font-monospace">{{ detection.session_id[:12] }}...</td>
+                                <td>
+                                    {% if detection.prediction == 'human' %}
+                                        <span class="badge bg-success">Human</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Bot</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ "%.2f"|format(detection.confidence * 100) }}%</td>
+                                <td>{{ detection.processing_time_ms }}ms</td>
+                                <td>{{ detection.action_type }}</td>
+                            </tr>
+                            {% endfor %}
+
+                            {% if not recent_detections %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">
+                                    No behavioral data available. Visit the 
+                                    <a href="{{ url_for('research') }}">research interface</a> 
+                                    to generate sample data.
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Data Visualization -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="mb-4">Behavioral Data Analysis</h2>
+                <div class="chart-container bg-white p-4 rounded">
+                    <canvas id="hourlyChart" width="400" height="200"></canvas>
                 </div>
             </div>
         </div>
@@ -241,149 +205,112 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-        // Initialize charts when page loads
-        let hourlyChart, distributionChart;
+// Load hourly detection data for visualization
+fetch('/api/stats')
+    .then(response => response.json())
+    .then(data => {
+        const ctx = document.getElementById('hourlyChart').getContext('2d');
 
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeCharts();
-            loadRealTimeData();
+        // Prepare data for chart
+        const hours = Object.keys(data.hourly_data || {}).sort((a, b) => parseInt(a) - parseInt(b));
+        const humanData = hours.map(hour => (data.hourly_data[hour] || {}).human || 0);
+        const botData = hours.map(hour => (data.hourly_data[hour] || {}).bot || 0);
 
-            // Auto-refresh every 30 seconds
-            setInterval(loadRealTimeData, 30000);
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: hours.map(h => h + ':00'),
+                datasets: [
+                    {
+                        label: 'Human Classifications',
+                        data: humanData,
+                        backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Bot Classifications',
+                        data: botData,
+                        backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Hourly Behavioral Classifications'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Classifications'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Hour of Day'
+                        }
+                    }
+                }
+            }
         });
+    })
+    .catch(error => {
+        console.error('Error loading chart data:', error);
+        document.getElementById('hourlyChart').innerHTML = 
+            '<p class="text-center text-muted">Chart data unavailable</p>';
+    });
+</script>
+{% endblock %}
 
-        function initializeCharts() {
-            // Hourly detections chart
-            const ctx1 = document.getElementById('hourlyChart');
-            if (ctx1) {
-                hourlyChart = new Chart(ctx1.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: Array.from({length: 24}, (_, i) => i + ':00'),
-                        datasets: [{
-                            label: 'Human',
-                            data: new Array(24).fill(0),
-                            borderColor: 'rgb(75, 192, 192)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                            tension: 0.1,
-                            fill: true
-                        }, {
-                            label: 'Bot',
-                            data: new Array(24).fill(0),
-                            borderColor: 'rgb(255, 99, 132)',
-                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                            tension: 0.1,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    stepSize: 1
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                position: 'top'
-                            }
-                        }
-                    }
-                });
-            }
+{% block extra_styles %}
+<style>
+.stat-card {
+    padding: 1.5rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+}
 
-            // Distribution pie chart
-            const ctx2 = document.getElementById('distributionChart');
-            if (ctx2) {
-                distributionChart = new Chart(ctx2.getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Human', 'Bot'],
-                        datasets: [{
-                            data: [{{ stats.human_detections or 0 }}, {{ stats.bot_detections or 0 }}],
-                            backgroundColor: [
-                                'rgba(40, 167, 69, 0.8)',
-                                'rgba(220, 53, 69, 0.8)'
-                            ],
-                            borderColor: [
-                                'rgba(40, 167, 69, 1)',
-                                'rgba(220, 53, 69, 1)'
-                            ],
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
-                                        return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        }
+.stat-icon {
+    font-size: 2.5rem;
+    margin-right: 1rem;
+}
 
-        function loadRealTimeData() {
-            fetch('/api/stats')
-                .then(response => response.json())
-                .then(data => {
-                    updateCharts(data);
-                    updateStatCards(data);
-                })
-                .catch(error => {
-                    console.error('Error loading stats:', error);
-                });
-        }
+.stat-content h3 {
+    margin: 0;
+    font-size: 2rem;
+}
 
-        function updateCharts(data) {
-            // Update distribution chart
-            if (distributionChart && data.human_detections !== undefined) {
-                distributionChart.data.datasets[0].data = [data.human_detections, data.bot_detections];
-                distributionChart.update('none');
-            }
+.stat-content p {
+    margin: 0;
+    opacity: 0.9;
+}
 
-            // Update hourly chart
-            if (hourlyChart && data.hourly_data) {
-                const humanData = new Array(24).fill(0);
-                const botData = new Array(24).fill(0);
+.performance-card, .training-info {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
 
-                Object.keys(data.hourly_data).forEach(hour => {
-                    const hourInt = parseInt(hour);
-                    if (hourInt >= 0 && hourInt < 24) {
-                        humanData[hourInt] = data.hourly_data[hour].human || 0;
-                        botData[hourInt] = data.hourly_data[hour].bot || 0;
-                    }
-                });
+.metric-item h4 {
+    font-size: 1.8rem;
+    margin: 0;
+}
 
-                hourlyChart.data.datasets[0].data = humanData;
-                hourlyChart.data.datasets[1].data = botData;
-                hourlyChart.update('none');
-            }
-        }
-
-        function updateStatCards(data) {
-            // Update stat cards if they exist
-            const totalEl = document.querySelector('.stat-box h4');
-            if (totalEl) {
-                totalEl.textContent = data.total_detections || 0;
-            }
-        }
-    </script>
+.chart-container {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+</style>
 {% endblock %}

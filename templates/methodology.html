@@ -1,0 +1,241 @@
+
+{% extends "base.html" %}
+
+{% block title %}Research Methodology - Behavioral Biometrics{% endblock %}
+
+{% block content %}
+<!-- Methodology Header -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="fas fa-book me-3"></i>
+                    Research Methodology
+                </h1>
+                <p class="lead">
+                    Comprehensive academic approach to behavioral biometrics research for automated bot detection
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Research Overview -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="mb-4">Research Overview</h2>
+                <p class="lead">
+                    This academic research project investigates the effectiveness of behavioral biometrics 
+                    in distinguishing human users from automated bots in web applications. Our study employs 
+                    machine learning techniques to analyze user interaction patterns and develop a robust 
+                    classification system.
+                </p>
+                
+                <h3 class="mt-5 mb-3">Research Hypothesis</h3>
+                <div class="alert alert-info">
+                    <h5>Primary Hypothesis:</h5>
+                    <p class="mb-0">Human behavioral patterns in digital interactions (mouse movements, keystroke dynamics, 
+                    and timing patterns) contain sufficient unique characteristics to reliably distinguish legitimate 
+                    users from automated bots using machine learning classification techniques.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Technical Methodology -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Technical Implementation</h2>
+        
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="methodology-card h-100">
+                    <h4><i class="fas fa-database text-primary me-2"></i>Data Collection Framework</h4>
+                    <ul>
+                        <li><strong>Mouse Movement Patterns:</strong> Coordinates, velocity, acceleration, trajectory smoothness</li>
+                        <li><strong>Click Dynamics:</strong> Timing intervals, spatial distribution, rhythm consistency</li>
+                        <li><strong>Keystroke Patterns:</strong> Dwell time, flight time, typing rhythm</li>
+                        <li><strong>Scroll Behavior:</strong> Speed variance, direction consistency, smoothness metrics</li>
+                        <li><strong>Device Fingerprinting:</strong> Screen resolution, user agent, timezone, platform</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="methodology-card h-100">
+                    <h4><i class="fas fa-cogs text-success me-2"></i>Feature Engineering</h4>
+                    <ul>
+                        <li><strong>Statistical Measures:</strong> Mean, standard deviation, variance calculations</li>
+                        <li><strong>Temporal Analysis:</strong> Inter-event intervals, rhythm consistency metrics</li>
+                        <li><strong>Spatial Analysis:</strong> Movement trajectory analysis, spatial distribution</li>
+                        <li><strong>Normalization:</strong> StandardScaler for feature scaling and normalization</li>
+                        <li><strong>Feature Selection:</strong> 23+ behavioral and device-based features</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="methodology-card h-100">
+                    <h4><i class="fas fa-brain text-warning me-2"></i>Machine Learning Model</h4>
+                    <ul>
+                        <li><strong>Algorithm:</strong> Random Forest Classifier with 100 estimators</li>
+                        <li><strong>Training Data:</strong> Synthetic dataset with human/bot behavioral patterns</li>
+                        <li><strong>Class Balancing:</strong> Weighted classes to handle imbalanced datasets</li>
+                        <li><strong>Cross-validation:</strong> Stratified k-fold validation for model evaluation</li>
+                        <li><strong>Hyperparameter Tuning:</strong> Grid search for optimal model parameters</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="methodology-card h-100">
+                    <h4><i class="fas fa-chart-line text-danger me-2"></i>Performance Evaluation</h4>
+                    <ul>
+                        <li><strong>Accuracy Metrics:</strong> Precision, Recall, F1-score calculations</li>
+                        <li><strong>ROC Analysis:</strong> Area Under Curve (AUC) for classification quality</li>
+                        <li><strong>Confusion Matrix:</strong> True/false positive and negative analysis</li>
+                        <li><strong>Processing Time:</strong> Real-time performance measurement</li>
+                        <li><strong>Statistical Significance:</strong> Confidence intervals and p-values</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Data Architecture -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">System Architecture</h2>
+        
+        <div class="row">
+            <div class="col-lg-4 text-center">
+                <div class="arch-component">
+                    <i class="fab fa-js-square fa-3x text-warning mb-3"></i>
+                    <h4>Frontend Data Collection</h4>
+                    <p class="text-muted">
+                        JavaScript-based behavioral tracking system collecting user interaction data 
+                        in real-time with minimal performance impact.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 text-center">
+                <div class="arch-component">
+                    <i class="fab fa-python fa-3x text-primary mb-3"></i>
+                    <h4>Backend Processing</h4>
+                    <p class="text-muted">
+                        Flask-based API server with PostgreSQL database for data storage, 
+                        feature extraction, and machine learning model execution.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 text-center">
+                <div class="arch-component">
+                    <i class="fas fa-robot fa-3x text-success mb-3"></i>
+                    <h4>ML Classification</h4>
+                    <p class="text-muted">
+                        Scikit-learn Random Forest model with real-time prediction capabilities 
+                        and continuous learning from new behavioral data.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Research Ethics -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="mb-4">Research Ethics and Privacy</h2>
+                
+                <div class="alert alert-success">
+                    <h5><i class="fas fa-shield-alt me-2"></i>Privacy Protection</h5>
+                    <ul class="mb-0">
+                        <li>No personally identifiable information (PII) is collected</li>
+                        <li>All data is anonymized with session-based identifiers</li>
+                        <li>Behavioral data is aggregated for statistical analysis only</li>
+                        <li>Data retention follows academic research guidelines</li>
+                    </ul>
+                </div>
+                
+                <h4 class="mt-4">Academic Standards</h4>
+                <p>
+                    This research follows established academic protocols for human-computer interaction studies. 
+                    All data collection is transparent, and participants are informed about the research objectives 
+                    and data usage. The study aims to contribute to cybersecurity knowledge while maintaining 
+                    the highest ethical standards.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Expected Outcomes -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="mb-4">Expected Research Outcomes</h2>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-bullseye text-primary me-2"></i>Academic Contributions</h5>
+                        <ul>
+                            <li>Novel behavioral feature extraction methods</li>
+                            <li>Machine learning model optimization</li>
+                            <li>Performance benchmarking results</li>
+                            <li>Comparative analysis with existing solutions</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-industry text-success me-2"></i>Practical Applications</h5>
+                        <ul>
+                            <li>Enhanced web security systems</li>
+                            <li>Improved user experience in authentication</li>
+                            <li>Real-time bot detection capabilities</li>
+                            <li>Framework for future research</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+.methodology-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid var(--bs-primary);
+}
+
+.methodology-card ul {
+    padding-left: 1.2rem;
+}
+
+.methodology-card li {
+    margin-bottom: 0.5rem;
+}
+
+.arch-component {
+    padding: 2rem;
+}
+
+.arch-component i {
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}

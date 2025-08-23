@@ -1,30 +1,33 @@
+
 {% extends "base.html" %}
 
-{% block title %}Demo - StealthCAPTCHA{% endblock %}
+{% block title %}Research Interface - Behavioral Biometrics{% endblock %}
 
 {% block content %}
-<!-- Demo Header -->
+<!-- Research Header -->
 <section class="demo-header">
     <div class="container">
         <div class="row">
             <div class="col-lg-12 text-center">
                 <h1 class="display-4 fw-bold mb-4">
-                    <i class="fas fa-flask text-primary me-3"></i>
-                    Live Demo
+                    <i class="fas fa-microscope text-primary me-3"></i>
+                    Research Interface
                 </h1>
                 <p class="lead text-muted mb-4">
-                    Test StealthCAPTCHA in action. Fill out the forms below while our AI analyzes your behavior in real-time.
+                    Interactive behavioral biometrics research platform. Participate in academic research by 
+                    providing behavioral data for machine learning analysis and bot detection studies.
                 </p>
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
-                    <strong>Note:</strong> The system is actively tracking your mouse movements, clicks, and typing patterns to demonstrate behavioral analysis.
+                    <strong>Research Note:</strong> This system collects anonymous behavioral data including mouse patterns, 
+                    keystroke dynamics, and interaction timings for academic cybersecurity research.
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Live Tracking Status -->
+<!-- Live Behavioral Analysis -->
 <section class="py-4 bg-light">
     <div class="container">
         <div class="row">
@@ -32,31 +35,31 @@
                 <div class="tracking-status bg-white p-4 rounded-3 shadow-sm">
                     <h5 class="mb-3">
                         <i class="fas fa-activity text-success me-2"></i>
-                        Behavioral Tracking Status
+                        Behavioral Data Collection Status
                     </h5>
                     <div class="row text-center">
                         <div class="col-md-3">
                             <div class="stat-box">
                                 <h4 class="text-primary mb-1" id="mouse-events">0</h4>
-                                <small class="text-muted">Mouse Events</small>
+                                <small class="text-muted">Mouse Patterns</small>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="stat-box">
                                 <h4 class="text-success mb-1" id="click-events">0</h4>
-                                <small class="text-muted">Clicks</small>
+                                <small class="text-muted">Click Dynamics</small>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="stat-box">
                                 <h4 class="text-warning mb-1" id="keystroke-events">0</h4>
-                                <small class="text-muted">Keystrokes</small>
+                                <small class="text-muted">Keystroke Data</small>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="stat-box">
                                 <h4 class="text-info mb-1" id="scroll-events">0</h4>
-                                <small class="text-muted">Scroll Events</small>
+                                <small class="text-muted">Scroll Patterns</small>
                             </div>
                         </div>
                     </div>
@@ -66,122 +69,130 @@
     </div>
 </section>
 
-<!-- Demo Forms -->
+<!-- Research Tasks -->
 <section class="py-5">
     <div class="container">
         <div class="row g-4">
-            <!-- Login Form Demo -->
+            <!-- Text Input Analysis -->
             <div class="col-lg-6">
                 <div class="demo-card h-100">
                     <div class="card-header">
                         <h4 class="mb-0">
-                            <i class="fas fa-sign-in-alt me-2"></i>
-                            Login Protection Demo
+                            <i class="fas fa-keyboard me-2"></i>
+                            Keystroke Dynamics Analysis
                         </h4>
-                        <p class="text-muted mb-0">Simulate a login form with bot detection</p>
+                        <p class="text-muted mb-0">Research task: Analyze typing patterns and rhythm</p>
                     </div>
                     <div class="card-body">
-                        <form id="login-form">
+                        <form id="text-analysis-form">
                             <div class="mb-3">
-                                <label for="username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="username" placeholder="Enter username" required>
+                                <label for="research-text" class="form-label">Type the following sentence:</label>
+                                <p class="text-primary">"The quick brown fox jumps over the lazy dog"</p>
+                                <textarea class="form-control" id="research-text" rows="3" 
+                                         placeholder="Type the sentence above..." required></textarea>
                             </div>
                             <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" placeholder="Enter password" required>
-                            </div>
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="remember">
-                                <label class="form-check-label" for="remember">Remember me</label>
+                                <label for="participant-id" class="form-label">Participant ID (Optional)</label>
+                                <input type="text" class="form-control" id="participant-id" placeholder="Enter participant ID">
                             </div>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                                <i class="fas fa-chart-line me-2"></i>Analyze Keystroke Patterns
                             </button>
                         </form>
                         
-                        <div id="login-result" class="mt-3" style="display: none;"></div>
+                        <div id="text-result" class="mt-3" style="display: none;"></div>
                     </div>
                 </div>
             </div>
             
-            <!-- Contact Form Demo -->
+            <!-- Mouse Movement Analysis -->
             <div class="col-lg-6">
                 <div class="demo-card h-100">
                     <div class="card-header">
                         <h4 class="mb-0">
-                            <i class="fas fa-envelope me-2"></i>
-                            Contact Form Demo
+                            <i class="fas fa-mouse-pointer me-2"></i>
+                            Mouse Movement Analysis
                         </h4>
-                        <p class="text-muted mb-0">Test form submission protection</p>
+                        <p class="text-muted mb-0">Research task: Analyze cursor movement patterns</p>
                     </div>
                     <div class="card-body">
-                        <form id="contact-form">
+                        <form id="mouse-analysis-form">
                             <div class="mb-3">
-                                <label for="name" class="form-label">Full Name</label>
-                                <input type="text" class="form-control" id="name" placeholder="Enter your name" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="message" class="form-label">Message</label>
-                                <textarea class="form-control" id="message" rows="4" placeholder="Enter your message" required></textarea>
+                                <label class="form-label">Task: Navigate and click the targets</label>
+                                <div class="mouse-task-area p-3 border rounded" style="height: 200px; position: relative; background: #f8f9fa;">
+                                    <div class="target-dot" style="position: absolute; top: 20px; left: 50px; width: 20px; height: 20px; background: #007bff; border-radius: 50%; cursor: pointer;"></div>
+                                    <div class="target-dot" style="position: absolute; top: 80px; right: 30px; width: 20px; height: 20px; background: #28a745; border-radius: 50%; cursor: pointer;"></div>
+                                    <div class="target-dot" style="position: absolute; bottom: 30px; left: 30%; width: 20px; height: 20px; background: #ffc107; border-radius: 50%; cursor: pointer;"></div>
+                                    <div class="target-dot" style="position: absolute; top: 50%; right: 50px; width: 20px; height: 20px; background: #dc3545; border-radius: 50%; cursor: pointer;"></div>
+                                </div>
+                                <small class="text-muted">Click all colored dots to complete the task</small>
                             </div>
                             <button type="submit" class="btn btn-success">
-                                <i class="fas fa-paper-plane me-2"></i>Send Message
+                                <i class="fas fa-crosshairs me-2"></i>Analyze Mouse Patterns
                             </button>
                         </form>
                         
-                        <div id="contact-result" class="mt-3" style="display: none;"></div>
+                        <div id="mouse-result" class="mt-3" style="display: none;"></div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Payment Form Demo -->
+        <!-- Behavioral Classification Task -->
         <div class="row mt-4">
             <div class="col-lg-8 mx-auto">
                 <div class="demo-card">
                     <div class="card-header">
                         <h4 class="mb-0">
-                            <i class="fas fa-credit-card me-2"></i>
-                            Payment Protection Demo
+                            <i class="fas fa-brain me-2"></i>
+                            Comprehensive Behavioral Analysis
                         </h4>
-                        <p class="text-muted mb-0">Simulate payment form with enhanced security</p>
+                        <p class="text-muted mb-0">Research task: Complete behavioral classification</p>
                     </div>
                     <div class="card-body">
-                        <form id="payment-form">
+                        <form id="comprehensive-form">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="card-name" class="form-label">Cardholder Name</label>
-                                    <input type="text" class="form-control" id="card-name" placeholder="John Doe" required>
+                                    <label for="research-name" class="form-label">Full Name (Research Use)</label>
+                                    <input type="text" class="form-control" id="research-name" placeholder="Enter name" required>
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="card-number" class="form-label">Card Number</label>
-                                    <input type="text" class="form-control" id="card-number" placeholder="1234 5678 9012 3456" required>
+                                    <label for="research-email" class="form-label">Email (Research Use)</label>
+                                    <input type="email" class="form-control" id="research-email" placeholder="Enter email" required>
                                 </div>
-                                <div class="col-md-4">
-                                    <label for="card-expiry" class="form-label">Expiry</label>
-                                    <input type="text" class="form-control" id="card-expiry" placeholder="MM/YY" required>
+                                <div class="col-12">
+                                    <label for="research-feedback" class="form-label">Research Feedback</label>
+                                    <textarea class="form-control" id="research-feedback" rows="4" 
+                                             placeholder="Please provide feedback on your experience with this behavioral biometrics research..." required></textarea>
                                 </div>
-                                <div class="col-md-4">
-                                    <label for="card-cvv" class="form-label">CVV</label>
-                                    <input type="text" class="form-control" id="card-cvv" placeholder="123" required>
+                                <div class="col-md-6">
+                                    <label for="age-group" class="form-label">Age Group</label>
+                                    <select class="form-control" id="age-group">
+                                        <option value="">Select age group</option>
+                                        <option value="18-25">18-25</option>
+                                        <option value="26-35">26-35</option>
+                                        <option value="36-45">36-45</option>
+                                        <option value="46+">46+</option>
+                                    </select>
                                 </div>
-                                <div class="col-md-4">
-                                    <label for="amount" class="form-label">Amount</label>
-                                    <input type="number" class="form-control" id="amount" placeholder="100.00" step="0.01" required>
+                                <div class="col-md-6">
+                                    <label for="computer-usage" class="form-label">Daily Computer Usage</label>
+                                    <select class="form-control" id="computer-usage">
+                                        <option value="">Select usage level</option>
+                                        <option value="light">Light (1-3 hours)</option>
+                                        <option value="moderate">Moderate (4-6 hours)</option>
+                                        <option value="heavy">Heavy (7+ hours)</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="mt-3">
                                 <button type="submit" class="btn btn-warning">
-                                    <i class="fas fa-credit-card me-2"></i>Process Payment
+                                    <i class="fas fa-microscope me-2"></i>Complete Behavioral Analysis
                                 </button>
                             </div>
                         </form>
                         
-                        <div id="payment-result" class="mt-3" style="display: none;"></div>
+                        <div id="comprehensive-result" class="mt-3" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -189,7 +200,7 @@
     </div>
 </section>
 
-<!-- Detection Results -->
+<!-- Research Results -->
 <section class="py-5 bg-light">
     <div class="container">
         <div class="row">
@@ -197,12 +208,12 @@
                 <div class="detection-results bg-white p-4 rounded-3 shadow-sm">
                     <h5 class="mb-3">
                         <i class="fas fa-chart-line text-primary me-2"></i>
-                        Real-time Detection Analysis
+                        Behavioral Classification Results
                     </h5>
                     
                     <div id="no-detection" class="text-center text-muted">
-                        <i class="fas fa-hourglass-half fa-2x mb-3"></i>
-                        <p>Submit a form to see behavioral analysis results</p>
+                        <i class="fas fa-flask fa-2x mb-3"></i>
+                        <p>Complete a research task to see behavioral analysis results</p>
                     </div>
                     
                     <div id="detection-display" style="display: none;">
@@ -216,13 +227,13 @@
                             <div class="col-md-4">
                                 <div class="detection-stat">
                                     <h3 id="confidence-score" class="mb-1">-</h3>
-                                    <small class="text-muted">Confidence</small>
+                                    <small class="text-muted">Confidence Score</small>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="detection-stat">
                                     <h3 id="processing-time" class="mb-1">-</h3>
-                                    <small class="text-muted">Processing (ms)</small>
+                                    <small class="text-muted">Analysis Time (ms)</small>
                                 </div>
                             </div>
                         </div>
@@ -248,12 +259,11 @@ let mouseEvents = 0;
 let clickEvents = 0;
 let keystrokeEvents = 0;
 let scrollEvents = 0;
+let targetsClicked = 0;
+const totalTargets = 4;
 
-// Enhanced behavioral tracking for demo
-function initDemoTracking() {
-    // Override the behavioral tracker to update counters
-    const originalTracker = window.behavioralTracker;
-    
+// Enhanced behavioral tracking for research
+function initResearchTracking() {
     // Mouse movement tracking
     document.addEventListener('mousemove', function(e) {
         mouseEvents++;
@@ -264,6 +274,13 @@ function initDemoTracking() {
     document.addEventListener('click', function(e) {
         clickEvents++;
         updateCounters();
+        
+        // Check if clicking target dots
+        if (e.target.classList.contains('target-dot')) {
+            e.target.style.background = '#6c757d';
+            e.target.style.pointerEvents = 'none';
+            targetsClicked++;
+        }
     });
     
     // Keystroke tracking
@@ -286,39 +303,39 @@ function updateCounters() {
     document.getElementById('scroll-events').textContent = scrollEvents;
 }
 
-function showDetectionResult(result) {
+function showResearchResult(result) {
     document.getElementById('no-detection').style.display = 'none';
     document.getElementById('detection-display').style.display = 'block';
     
     // Update values
-    document.getElementById('prediction-result').textContent = result.prediction.toUpperCase();
-    document.getElementById('confidence-score').textContent = (result.confidence * 100).toFixed(1) + '%';
-    document.getElementById('processing-time').textContent = result.processing_time_ms + 'ms';
+    document.getElementById('prediction-result').textContent = result.classification.toUpperCase();
+    document.getElementById('confidence-score').textContent = (result.confidence_score * 100).toFixed(1) + '%';
+    document.getElementById('processing-time').textContent = '< 100ms';
     
     // Set colors based on prediction
     const predictionEl = document.getElementById('prediction-result');
     const alertEl = document.getElementById('detection-alert');
     const messageEl = document.getElementById('detection-message');
     
-    if (result.prediction === 'human') {
+    if (result.classification === 'human') {
         predictionEl.className = 'mb-1 text-success';
         alertEl.className = 'alert alert-success';
-        messageEl.innerHTML = '<i class="fas fa-check-circle me-2"></i>Human behavior detected. Access granted.';
+        messageEl.innerHTML = '<i class="fas fa-check-circle me-2"></i><strong>Human Behavior Detected:</strong> Your behavioral patterns match typical human user characteristics.';
     } else {
-        predictionEl.className = 'mb-1 text-danger';
-        alertEl.className = 'alert alert-danger';
-        messageEl.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Bot behavior detected. Access denied.';
+        predictionEl.className = 'mb-1 text-warning';
+        alertEl.className = 'alert alert-warning';
+        messageEl.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><strong>Automated Behavior Detected:</strong> Your interaction patterns show characteristics similar to automated systems.';
     }
 }
 
-function submitDemoForm(formId, actionType) {
+function submitResearchTask(formId, taskType) {
     const formData = {
-        session_id: sessionId,
-        action_type: actionType,
+        sessionId: sessionId,
+        task_type: taskType,
         form_id: formId
     };
     
-    fetch('/api/demo_submit', {
+    fetch('/api/research_test', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -328,34 +345,26 @@ function submitDemoForm(formId, actionType) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showDetectionResult(data.detection);
+            showResearchResult(data.analysis);
             
-            // Show form-specific result
+            // Show task-specific result
             const resultDiv = document.getElementById(formId + '-result');
             resultDiv.style.display = 'block';
             
-            if (data.detection.is_human) {
-                resultDiv.innerHTML = `
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle me-2"></i>
-                        <strong>Success!</strong> ${data.message}
-                    </div>
-                `;
-            } else {
-                resultDiv.innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        <strong>Blocked!</strong> Bot behavior detected. Please try again.
-                    </div>
-                `;
-            }
+            resultDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Research Task Completed!</strong> ${data.message}
+                    <br><small>Behavioral features analyzed: ${data.analysis.behavioral_features}</small>
+                </div>
+            `;
         } else {
             const resultDiv = document.getElementById(formId + '-result');
             resultDiv.style.display = 'block';
             resultDiv.innerHTML = `
                 <div class="alert alert-warning">
                     <i class="fas fa-exclamation-circle me-2"></i>
-                    <strong>Error!</strong> ${data.message}
+                    <strong>Research Error:</strong> ${data.message}
                 </div>
             `;
         }
@@ -367,24 +376,28 @@ function submitDemoForm(formId, actionType) {
 
 // Form event handlers
 document.addEventListener('DOMContentLoaded', function() {
-    initDemoTracking();
+    initResearchTracking();
     
-    // Login form
-    document.getElementById('login-form').addEventListener('submit', function(e) {
+    // Text analysis form
+    document.getElementById('text-analysis-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        submitDemoForm('login', 'login');
+        submitResearchTask('text', 'keystroke_analysis');
     });
     
-    // Contact form
-    document.getElementById('contact-form').addEventListener('submit', function(e) {
+    // Mouse analysis form
+    document.getElementById('mouse-analysis-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        submitDemoForm('contact', 'form_submit');
+        if (targetsClicked < totalTargets) {
+            alert('Please click all targets before submitting the task.');
+            return;
+        }
+        submitResearchTask('mouse', 'mouse_analysis');
     });
     
-    // Payment form
-    document.getElementById('payment-form').addEventListener('submit', function(e) {
+    // Comprehensive analysis form
+    document.getElementById('comprehensive-form').addEventListener('submit', function(e) {
         e.preventDefault();
-        submitDemoForm('payment', 'payment');
+        submitResearchTask('comprehensive', 'comprehensive_analysis');
     });
 });
 </script>
