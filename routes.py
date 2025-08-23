@@ -209,6 +209,11 @@ def methodology():
     """Research methodology and technical details"""
     return render_template('methodology.html')
 
+@app.route('/about')
+def about():
+    """About page with project information"""
+    return render_template('about.html')
+
 @app.route('/analytics')
 def analytics():
     """Research analytics dashboard for viewing detection results"""
