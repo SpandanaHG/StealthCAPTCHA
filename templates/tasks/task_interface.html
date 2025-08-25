@@ -1,264 +1,313 @@
-
 {% extends "base.html" %}
 
-{% block title %}{{ task.title }} - StealthCAPTCHA{% endblock %}
+{% block title %}Task: {{ task.title }} - StealthCAPTCHA{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <div class="row">
-        <div class="col-md-8 mx-auto">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-tasks me-2"></i>{{ task.title }}</h2>
+                    <p class="text-muted">{{ task.description }}</p>
+                </div>
+                <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h5><i class="fas fa-tasks me-2"></i>{{ task.title }}</h5>
-                    <small class="text-muted">{{ task.description }}</small>
+                    <h5><i class="fas fa-play me-2"></i>Task Interface</h5>
+                    <small class="text-muted">Complete the task naturally for behavioral analysis</small>
                 </div>
                 <div class="card-body">
-                    <div id="taskInterface">
-                        {% if task.task_type == 'form_fill' %}
-                        <div class="task-container">
-                            <h6>Please fill out this form naturally:</h6>
-                            <form id="behaviorForm" class="mt-3">
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="firstName" class="form-label">First Name</label>
-                                        <input type="text" class="form-control" id="firstName" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="lastName" class="form-label">Last Name</label>
-                                        <input type="text" class="form-control" id="lastName" required>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="email" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="phone" class="form-label">Phone Number</label>
-                                    <input type="tel" class="form-control" id="phone" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="message" class="form-label">Message</label>
-                                    <textarea class="form-control" id="message" rows="3" placeholder="Type a brief message about yourself..."></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Submit Form</button>
-                            </form>
+                    <!-- Task content will be dynamically loaded based on task type -->
+                    <div id="task-content">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading task...</span>
+                            </div>
+                            <p class="mt-3">Preparing behavioral analysis task...</p>
                         </div>
-                        
-                        {% elif task.task_type == 'click_sequence' %}
-                        <div class="task-container">
-                            <h6>Click the buttons in the order they appear:</h6>
-                            <div id="clickArea" class="mt-3 p-4 border rounded" style="min-height: 300px; position: relative;">
-                                <div class="text-center text-muted">
-                                    <i class="fas fa-hand-pointer fa-3x mb-3"></i>
-                                    <p>Click "Start" to begin the clicking sequence</p>
-                                    <button id="startClicking" class="btn btn-primary">Start Clicking Task</button>
-                                </div>
-                            </div>
-                            <div class="mt-3">
-                                <div class="progress">
-                                    <div id="clickProgress" class="progress-bar" role="progressbar" style="width: 0%"></div>
-                                </div>
-                                <small class="text-muted">Progress: <span id="clickCount">0</span>/10 clicks</small>
-                            </div>
-                        </div>
-                        
-                        {% elif task.task_type == 'typing_test' %}
-                        <div class="task-container">
-                            <h6>Type the following text naturally (don't copy-paste):</h6>
-                            <div class="alert alert-info mt-3">
-                                <p class="mb-0"><strong>Sample Text:</strong></p>
-                                <p id="sampleText" class="mt-2 font-monospace">
-                                    The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet and helps analyze typing patterns for behavioral authentication systems.
-                                </p>
-                            </div>
-                            <div class="mb-3">
-                                <label for="typingArea" class="form-label">Your typing:</label>
-                                <textarea id="typingArea" class="form-control" rows="4" placeholder="Start typing the text above..."></textarea>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <small class="text-muted">
-                                        Accuracy: <span id="typingAccuracy">0%</span> | 
-                                        Speed: <span id="typingSpeed">0</span> WPM
-                                    </small>
-                                </div>
-                                <button id="completeTyping" class="btn btn-success" disabled>Complete Task</button>
-                            </div>
-                        </div>
-                        
-                        {% elif task.task_type == 'mouse_tracking' %}
-                        <div class="task-container">
-                            <h6>Navigate naturally through the interactive area:</h6>
-                            <div id="mouseArea" class="mt-3 p-4 border rounded" style="height: 400px; position: relative; background: linear-gradient(45deg, #f8f9fa, #e9ecef);">
-                                <div class="interactive-elements">
-                                    <div class="hover-target" style="position: absolute; top: 50px; left: 100px; width: 60px; height: 60px; background: #007bff; border-radius: 50%; cursor: pointer;" data-target="1"></div>
-                                    <div class="hover-target" style="position: absolute; top: 150px; right: 100px; width: 80px; height: 40px; background: #28a745; border-radius: 20px; cursor: pointer;" data-target="2"></div>
-                                    <div class="hover-target" style="position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background: #ffc107; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); cursor: pointer;" data-target="3"></div>
-                                    <div class="hover-target" style="position: absolute; top: 80px; right: 200px; width: 50px; height: 50px; background: #dc3545; transform: rotate(45deg); cursor: pointer;" data-target="4"></div>
-                                </div>
-                                <div class="text-center mt-5">
-                                    <p class="text-muted">Move your mouse around and click on the colored shapes</p>
-                                    <p><small>Targets clicked: <span id="targetsClicked">0</span>/4</small></p>
-                                </div>
-                            </div>
-                            <button id="completeMouseTask" class="btn btn-success mt-3" disabled>Complete Task</button>
-                        </div>
-                        {% endif %}
                     </div>
-                    
-                    <div id="taskStatus" class="mt-4"></div>
+
+                    <div class="mt-4">
+                        <button id="complete-task" class="btn btn-success" style="display: none;">
+                            <i class="fas fa-check me-2"></i>Complete Task
+                        </button>
+                    </div>
                 </div>
-                <div class="card-footer text-center">
-                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
-                    </a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-chart-line me-2"></i>Live Metrics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 id="mouse-events" class="text-primary">0</h4>
+                            <small>Mouse Events</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 id="click-events" class="text-success">0</h4>
+                            <small>Clicks</small>
+                        </div>
+                        <div class="col-6 mt-3">
+                            <h4 id="keystroke-events" class="text-warning">0</h4>
+                            <small>Keystrokes</small>
+                        </div>
+                        <div class="col-6 mt-3">
+                            <h4 id="scroll-events" class="text-info">0</h4>
+                            <small>Scrolls</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-info-circle me-2"></i>Task Progress</h6>
+                </div>
+                <div class="card-body">
+                    <div id="task-progress">
+                        <p class="text-muted">Task not started</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
-<script src="{{ url_for('static', filename='js/behavioral_tracker.js') }}"></script>
+{% block extra_scripts %}
 <script>
-// Initialize behavioral tracking
-const tracker = StealthCAPTCHA.init('{{ session_id }}');
+const sessionId = '{{ session_id }}';
+const taskId = {{ task.id }};
+const taskType = '{{ task.task_type }}';
 
-// Task-specific JavaScript
-{% if task.task_type == 'form_fill' %}
-document.getElementById('behaviorForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    completeTask();
-});
+// Tracking variables
+let mouseEvents = 0;
+let clickEvents = 0;
+let keystrokeEvents = 0;
+let scrollEvents = 0;
+let taskCompleted = false;
 
-{% elif task.task_type == 'click_sequence' %}
-let clickSequence = 0;
-let maxClicks = 10;
+// Initialize task based on type
+function initializeTask() {
+    const taskContent = document.getElementById('task-content');
 
-document.getElementById('startClicking').addEventListener('click', function() {
-    this.style.display = 'none';
-    generateClickTargets();
-});
+    switch(taskType) {
+        case 'form_fill':
+            taskContent.innerHTML = generateFormTask();
+            break;
+        case 'click_sequence':
+            taskContent.innerHTML = generateClickTask();
+            break;
+        case 'typing_test':
+            taskContent.innerHTML = generateTypingTask();
+            break;
+        case 'mouse_tracking':
+            taskContent.innerHTML = generateMouseTrackingTask();
+            break;
+        default:
+            taskContent.innerHTML = '<p class="text-danger">Unknown task type</p>';
+    }
 
-function generateClickTargets() {
-    const clickArea = document.getElementById('clickArea');
-    const target = document.createElement('div');
-    target.className = 'click-target btn btn-primary';
-    target.style.position = 'absolute';
-    target.style.left = Math.random() * (clickArea.offsetWidth - 100) + 'px';
-    target.style.top = Math.random() * (clickArea.offsetHeight - 40) + 'px';
-    target.textContent = `Click ${clickSequence + 1}`;
-    
-    target.addEventListener('click', function() {
-        clickSequence++;
-        target.remove();
-        
-        const progress = (clickSequence / maxClicks) * 100;
-        document.getElementById('clickProgress').style.width = progress + '%';
-        document.getElementById('clickCount').textContent = clickSequence;
-        
-        if (clickSequence < maxClicks) {
-            setTimeout(() => generateClickTargets(), 500);
-        } else {
-            completeTask();
-        }
-    });
-    
-    clickArea.appendChild(target);
+    document.getElementById('complete-task').style.display = 'block';
+    updateProgress('Task loaded - Begin interaction');
 }
 
-{% elif task.task_type == 'typing_test' %}
-const sampleText = document.getElementById('sampleText').textContent.trim();
-const typingArea = document.getElementById('typingArea');
-
-typingArea.addEventListener('input', function() {
-    const typed = this.value;
-    const accuracy = calculateAccuracy(typed, sampleText);
-    document.getElementById('typingAccuracy').textContent = accuracy + '%';
-    
-    if (accuracy > 80 && typed.length > sampleText.length * 0.8) {
-        document.getElementById('completeTyping').disabled = false;
-    }
-});
-
-document.getElementById('completeTyping').addEventListener('click', function() {
-    completeTask();
-});
-
-function calculateAccuracy(typed, reference) {
-    let correct = 0;
-    const minLength = Math.min(typed.length, reference.length);
-    
-    for (let i = 0; i < minLength; i++) {
-        if (typed[i] === reference[i]) correct++;
-    }
-    
-    return Math.round((correct / reference.length) * 100);
-}
-
-{% elif task.task_type == 'mouse_tracking' %}
-let targetsHit = 0;
-const totalTargets = 4;
-
-document.querySelectorAll('.hover-target').forEach(target => {
-    target.addEventListener('click', function() {
-        if (!this.classList.contains('clicked')) {
-            this.classList.add('clicked');
-            this.style.opacity = '0.5';
-            targetsHit++;
-            
-            document.getElementById('targetsClicked').textContent = targetsHit;
-            
-            if (targetsHit >= totalTargets) {
-                document.getElementById('completeMouseTask').disabled = false;
-            }
-        }
-    });
-    
-    target.addEventListener('mouseenter', function() {
-        this.style.transform += ' scale(1.1)';
-    });
-    
-    target.addEventListener('mouseleave', function() {
-        this.style.transform = this.style.transform.replace(' scale(1.1)', '');
-    });
-});
-
-document.getElementById('completeMouseTask').addEventListener('click', function() {
-    completeTask();
-});
-{% endif %}
-
-// Complete task function
-function completeTask() {
-    const statusDiv = document.getElementById('taskStatus');
-    statusDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-2"></i>Analyzing behavioral data...</div>';
-    
-    // Perform bot detection
-    StealthCAPTCHA.detectBot({
-        page_url: window.location.pathname,
-        action_type: 'task_completion',
-        taskId: {{ task.id }}
-    }, function(result) {
-        if (result.error) {
-            statusDiv.innerHTML = `<div class="alert alert-danger">Error: ${result.error}</div>`;
-        } else {
-            const isHuman = result.is_human;
-            const confidence = Math.round(result.confidence * 100);
-            
-            statusDiv.innerHTML = `
-                <div class="alert alert-${isHuman ? 'success' : 'warning'}">
-                    <h6><i class="fas fa-${isHuman ? 'user-check' : 'robot'} me-2"></i>Task Completed!</h6>
-                    <p class="mb-1">Classification: <strong>${result.prediction.toUpperCase()}</strong></p>
-                    <p class="mb-1">Confidence: <strong>${confidence}%</strong></p>
-                    <small class="text-muted">Processing time: ${result.processing_time_ms}ms</small>
-                    <hr>
-                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-${isHuman ? 'success' : 'warning'} btn-sm">
-                        <i class="fas fa-arrow-left me-1"></i>Return to Dashboard
-                    </a>
+function generateFormTask() {
+    return `
+        <form id="behavioral-form">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="firstName" class="form-label">First Name</label>
+                    <input type="text" class="form-control" id="firstName" placeholder="Enter your first name">
                 </div>
-            `;
+                <div class="col-md-6">
+                    <label for="lastName" class="form-label">Last Name</label>
+                    <input type="text" class="form-control" id="lastName" placeholder="Enter your last name">
+                </div>
+                <div class="col-12">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" placeholder="Enter your email address">
+                </div>
+                <div class="col-12">
+                    <label for="message" class="form-label">Message</label>
+                    <textarea class="form-control" id="message" rows="3" placeholder="Write a brief message about yourself"></textarea>
+                </div>
+                <div class="col-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="terms">
+                        <label class="form-check-label" for="terms">
+                            I agree to the terms and conditions
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <small class="text-muted">Fill out this form naturally to complete the behavioral analysis task.</small>
+    `;
+}
+
+function generateClickTask() {
+    return `
+        <div class="click-targets" style="height: 400px; background: #f8f9fa; border: 2px dashed #dee2e6; position: relative;">
+            <div class="target-button btn btn-primary" style="position: absolute; top: 50px; left: 50px;" data-target="1">Target 1</div>
+            <div class="target-button btn btn-success" style="position: absolute; top: 50px; right: 50px;" data-target="2">Target 2</div>
+            <div class="target-button btn btn-warning" style="position: absolute; bottom: 50px; left: 50px;" data-target="3">Target 3</div>
+            <div class="target-button btn btn-danger" style="position: absolute; bottom: 50px; right: 50px;" data-target="4">Target 4</div>
+            <div class="target-button btn btn-info" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);" data-target="5">Center</div>
+        </div>
+        <small class="text-muted">Click the buttons in any order. Each button can be clicked multiple times.</small>
+    `;
+}
+
+function generateTypingTask() {
+    return `
+        <div class="typing-task">
+            <div class="mb-3">
+                <label for="typing-text" class="form-label">Type the following text exactly as shown:</label>
+                <div class="alert alert-light">
+                    "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet and is commonly used for typing practice."
+                </div>
+                <textarea id="typing-text" class="form-control" rows="4" placeholder="Start typing here..."></textarea>
+            </div>
+            <div class="progress">
+                <div id="typing-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+            </div>
+        </div>
+        <small class="text-muted">Type naturally without rushing. We're analyzing your keystroke patterns.</small>
+    `;
+}
+
+function generateMouseTrackingTask() {
+    return `
+        <div class="mouse-tracking" style="height: 400px; background: #f8f9fa; border: 2px dashed #dee2e6; position: relative;">
+            <div class="path-indicator" style="position: absolute; top: 20px; left: 20px; width: 30px; height: 30px; background: #28a745; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">1</div>
+            <div class="path-indicator" style="position: absolute; top: 20px; right: 20px; width: 30px; height: 30px; background: #007bff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">2</div>
+            <div class="path-indicator" style="position: absolute; bottom: 20px; right: 20px; width: 30px; height: 30px; background: #ffc107; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">3</div>
+            <div class="path-indicator" style="position: absolute; bottom: 20px; left: 20px; width: 30px; height: 30px; background: #dc3545; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">4</div>
+            <div class="center-target" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: #6f42c1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">END</div>
+        </div>
+        <small class="text-muted">Move your mouse to visit each numbered circle in order (1→2→3→4→END). Take your time.</small>
+    `;
+}
+
+// Event tracking
+function setupEventTracking() {
+    document.addEventListener('mousemove', function(e) {
+        mouseEvents++;
+        updateCounters();
+    });
+
+    document.addEventListener('click', function(e) {
+        clickEvents++;
+        updateCounters();
+
+        // Handle click task
+        if (e.target.classList.contains('target-button')) {
+            e.target.classList.add('clicked');
+            e.target.style.opacity = '0.6';
+            updateProgress(`Clicked ${e.target.textContent}`);
         }
     });
+
+    document.addEventListener('keydown', function(e) {
+        keystrokeEvents++;
+        updateCounters();
+
+        // Handle typing task
+        if (e.target.id === 'typing-text') {
+            updateTypingProgress();
+        }
+    });
+
+    document.addEventListener('scroll', function(e) {
+        scrollEvents++;
+        updateCounters();
+    });
 }
+
+function updateCounters() {
+    document.getElementById('mouse-events').textContent = mouseEvents;
+    document.getElementById('click-events').textContent = clickEvents;
+    document.getElementById('keystroke-events').textContent = keystrokeEvents;
+    document.getElementById('scroll-events').textContent = scrollEvents;
+}
+
+function updateProgress(message) {
+    document.getElementById('task-progress').innerHTML = `<p class="text-success">${message}</p>`;
+}
+
+function updateTypingProgress() {
+    const textarea = document.getElementById('typing-text');
+    if (textarea) {
+        const target = "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet and is commonly used for typing practice.";
+        const progress = (textarea.value.length / target.length) * 100;
+        const progressBar = document.getElementById('typing-progress');
+        if (progressBar) {
+            progressBar.style.width = Math.min(progress, 100) + '%';
+        }
+        updateProgress(`Typing progress: ${Math.floor(progress)}%`);
+    }
+}
+
+function completeTask() {
+    if (taskCompleted) return;
+
+    taskCompleted = true;
+    updateProgress('Analyzing behavioral data...');
+
+    const payload = {
+        sessionId: sessionId,
+        taskId: taskId,
+        page_url: window.location.pathname,
+        action_type: 'task_completion'
+    };
+
+    fetch('/api/detect_bot', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.prediction) {
+            updateProgress(`Task completed! Classification: ${data.prediction} (${(data.confidence * 100).toFixed(1)}% confidence)`);
+
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 3000);
+        } else {
+            updateProgress('Error during analysis. Please try again.');
+            taskCompleted = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        updateProgress('Network error. Please try again.');
+        taskCompleted = false;
+    });
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    setupEventTracking();
+    initializeTask();
+
+    document.getElementById('complete-task').addEventListener('click', completeTask);
+});
 </script>
 {% endblock %}
