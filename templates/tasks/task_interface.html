@@ -100,6 +100,35 @@ let keystrokeEvents = 0;
 let scrollEvents = 0;
 let taskCompleted = false;
 
+// Initialize behavioral tracking for this task
+function initTaskBehavioralTracking() {
+    // Override the global behavioral tracker for this specific task
+    if (typeof initBehavioralTracking === 'function') {
+        initBehavioralTracking();
+    }
+    
+    // Additional task-specific tracking
+    document.addEventListener('mousemove', function(e) {
+        mouseEvents++;
+        updateCounters();
+    });
+
+    document.addEventListener('click', function(e) {
+        clickEvents++;
+        updateCounters();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        keystrokeEvents++;
+        updateCounters();
+    });
+
+    document.addEventListener('scroll', function(e) {
+        scrollEvents++;
+        updateCounters();
+    });
+}
+
 // Initialize task based on type
 function initializeTask() {
     const taskContent = document.getElementById('task-content');
@@ -304,10 +333,19 @@ function completeTask() {
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize task-specific behavioral tracking first
+    initTaskBehavioralTracking();
+    
+    // Then setup task-specific event tracking
     setupEventTracking();
+    
+    // Initialize the task interface
     initializeTask();
 
+    // Bind complete task button
     document.getElementById('complete-task').addEventListener('click', completeTask);
+    
+    console.log('Task interface initialized with session ID:', sessionId);
 });
 </script>
 {% endblock %}
