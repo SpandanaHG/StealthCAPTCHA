@@ -347,58 +347,70 @@ def detect_bot():
             db.session.add(behavioral_data)
             db.session.flush()
 
-        # Extract features for ML model - improved heuristic-based detection
+        # Extract features for ML model - human vs bot detection
         mouse_events = len(behavioral_data.mouse_movements or [])
         click_events = len(behavioral_data.click_patterns or [])
         keyboard_events = len(behavioral_data.keystroke_patterns or [])
         scroll_events = len(behavioral_data.scroll_patterns or [])
         
-        # More realistic human detection logic
-        total_events = mouse_events + click_events + keyboard_events + scroll_events
+        logging.info(f"Event counts - Mouse: {mouse_events}, Clicks: {click_events}, Keyboard: {keyboard_events}, Scrolls: {scroll_events}")
         
-        # Human indicators:
-        # - Some mouse movement (shows natural cursor control)
-        # - Reasonable click count (not too many, not too few)
-        # - Mixed interaction types (mouse + keyboard or scroll)
-        # - Total activity suggests engagement
+        # Total meaningful interactions
+        total_interactions = mouse_events + click_events + keyboard_events + scroll_events
         
-        human_score = 0
+        # Human detection criteria:
+        # 1. Must have meaningful mouse movement (>= 15 movements shows natural navigation)
+        # 2. Must have some clicks (>= 3 clicks shows interaction with interface)
+        # 3. OR must have significant typing (>= 10 keystrokes shows form interaction)
+        # 4. Overall engagement threshold
         
-        # Mouse movement scoring
-        if mouse_events > 3:
-            human_score += 30
-        if mouse_events > 10:
-            human_score += 20
+        is_human = False
+        human_indicators = []
+        
+        # Primary human indicators
+        if mouse_events >= 15:
+            human_indicators.append("natural_mouse_movement")
             
-        # Click pattern scoring  
-        if 1 <= click_events <= 20:
-            human_score += 25
-        if click_events > 0:
-            human_score += 15
+        if click_events >= 3:
+            human_indicators.append("interactive_clicking")
             
-        # Keyboard interaction scoring
-        if keyboard_events > 0:
-            human_score += 20
-        if keyboard_events > 5:
-            human_score += 15
+        if keyboard_events >= 10:
+            human_indicators.append("meaningful_typing")
             
-        # Scroll behavior scoring
-        if scroll_events > 0:
-            human_score += 10
+        if scroll_events >= 5:
+            human_indicators.append("page_exploration")
+        
+        # Human classification logic
+        if len(human_indicators) >= 2:
+            # Multiple types of interaction - clearly human
+            is_human = True
+            confidence_base = 0.85
+        elif mouse_events >= 25 and click_events >= 2:
+            # High mouse activity with some clicking - human
+            is_human = True  
+            confidence_base = 0.80
+        elif keyboard_events >= 20 and (mouse_events >= 5 or click_events >= 1):
+            # Significant typing with some navigation - human
+            is_human = True
+            confidence_base = 0.82
+        elif total_interactions >= 40:
+            # Very high overall activity - likely human
+            is_human = True
+            confidence_base = 0.78
+        else:
+            # Low interaction - likely bot (direct task completion)
+            is_human = False
+            confidence_base = 0.75
             
-        # Total engagement scoring
-        if total_events > 10:
-            human_score += 10
-        if total_events > 25:
-            human_score += 15
-            
-        # Determine prediction based on human score
-        if human_score >= 50:
+        # Set prediction and confidence
+        if is_human:
             prediction = 'human'
-            confidence = min(0.95, 0.65 + (human_score / 200))
+            confidence = min(0.95, confidence_base + (total_interactions / 200))
         else:
             prediction = 'bot'
-            confidence = min(0.85, 0.60 + ((100 - human_score) / 200))
+            confidence = min(0.90, confidence_base + (0.05 if total_interactions < 5 else 0))
+        
+        logging.info(f"Prediction: {prediction}, Confidence: {confidence:.2f}, Indicators: {human_indicators}")
 
         # Update behavioral data with prediction
         behavioral_data.is_human = (prediction == 'human')
