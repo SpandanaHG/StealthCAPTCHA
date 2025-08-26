@@ -382,62 +382,36 @@ def detect_bot():
         if data.get('clickPatterns'):
             logging.info(f"Click patterns in request: {len(data.get('clickPatterns', []))}")
         
-        # Total meaningful interactions
-        total_interactions = mouse_events + click_events + keyboard_events + scroll_events
+        # Simple bot detection logic based on minimum thresholds
+        # BOT: If ANY of these conditions are true
+        # - Mouse events < 15
+        # - Click events < 2  
+        # - Keystroke events < 2
+        # - Scroll events < 2
         
-        # Human detection criteria:
-        # 1. Must have meaningful mouse movement (>= 15 movements shows natural navigation)
-        # 2. Must have some clicks (>= 3 clicks shows interaction with interface)
-        # 3. OR must have significant typing (>= 10 keystrokes shows form interaction)
-        # 4. Overall engagement threshold
+        is_bot = (mouse_events < 15 or 
+                 click_events < 2 or 
+                 keyboard_events < 2 or 
+                 scroll_events < 2)
         
-        is_human = False
-        human_indicators = []
-        
-        # Primary human indicators
-        if mouse_events >= 15:
-            human_indicators.append("natural_mouse_movement")
-            
-        if click_events >= 3:
-            human_indicators.append("interactive_clicking")
-            
-        if keyboard_events >= 10:
-            human_indicators.append("meaningful_typing")
-            
-        if scroll_events >= 5:
-            human_indicators.append("page_exploration")
-        
-        # Human classification logic
-        if len(human_indicators) >= 2:
-            # Multiple types of interaction - clearly human
-            is_human = True
-            confidence_base = 0.85
-        elif mouse_events >= 25 and click_events >= 2:
-            # High mouse activity with some clicking - human
-            is_human = True  
-            confidence_base = 0.80
-        elif keyboard_events >= 20 and (mouse_events >= 5 or click_events >= 1):
-            # Significant typing with some navigation - human
-            is_human = True
-            confidence_base = 0.82
-        elif total_interactions >= 40:
-            # Very high overall activity - likely human
-            is_human = True
-            confidence_base = 0.78
-        else:
-            # Low interaction - likely bot (direct task completion)
-            is_human = False
-            confidence_base = 0.75
-            
-        # Set prediction and confidence
-        if is_human:
-            prediction = 'human'
-            confidence = min(0.95, confidence_base + (total_interactions / 200))
-        else:
+        if is_bot:
             prediction = 'bot'
-            confidence = min(0.90, confidence_base + (0.05 if total_interactions < 5 else 0))
+            confidence = 0.85
+            reason = []
+            if mouse_events < 15:
+                reason.append(f"insufficient_mouse_movement({mouse_events}<15)")
+            if click_events < 2:
+                reason.append(f"insufficient_clicks({click_events}<2)")
+            if keyboard_events < 2:
+                reason.append(f"insufficient_keystrokes({keyboard_events}<2)")
+            if scroll_events < 2:
+                reason.append(f"insufficient_scrolling({scroll_events}<2)")
+        else:
+            prediction = 'human'
+            confidence = 0.90
+            reason = [f"sufficient_interaction(mouse:{mouse_events},clicks:{click_events},keys:{keyboard_events},scrolls:{scroll_events})"]
         
-        logging.info(f"Prediction: {prediction}, Confidence: {confidence:.2f}, Indicators: {human_indicators}")
+        logging.info(f"Prediction: {prediction}, Confidence: {confidence:.2f}, Reason: {', '.join(reason)}")
 
         # Update behavioral data with prediction
         behavioral_data.is_human = (prediction == 'human')
