@@ -139,29 +139,6 @@ class User(UserMixin, db.Model):
     @property
     def is_likely_bot(self):
         return self.bot_percentage > 60  # Threshold for bot classification
-    
-    def update_behavioral_stats(self, prediction, confidence):
-        """Update user's behavioral statistics after a detection"""
-        self.total_sessions += 1
-        
-        if prediction == 'bot':
-            self.bot_detections += 1
-        else:
-            self.human_detections += 1
-            
-        # Update bot percentage
-        self.bot_percentage = (self.bot_detections / self.total_sessions) * 100
-        
-        # Update average confidence score
-        if self.avg_confidence_score is None:
-            self.avg_confidence_score = confidence
-        else:
-            # Running average
-            total_confidence = self.avg_confidence_score * (self.total_sessions - 1) + confidence
-            self.avg_confidence_score = total_confidence / self.total_sessions
-        
-        # Mark as likely bot if bot percentage > 60%
-        self.is_likely_bot = self.bot_percentage > 60.0
 
     def __repr__(self):
         return f'<User {self.username}>'

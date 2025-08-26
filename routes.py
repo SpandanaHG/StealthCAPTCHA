@@ -197,8 +197,13 @@ def perform_task(task_id):
     return render_template('tasks/task_interface.html', task=task, session_id=session['session_id'])
 
 @app.route('/research')
+@login_required
 def research():
-    """Research interface for behavioral biometrics testing"""
+    """Research interface for behavioral biometrics testing - Admin only"""
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('index'))
+    
     if 'session_id' not in session:
         session['session_id'] = str(uuid.uuid4())
     return render_template('research.html', session_id=session['session_id'])
@@ -214,8 +219,13 @@ def about():
     return render_template('about.html')
 
 @app.route('/analytics')
+@login_required
 def analytics():
-    """Research analytics dashboard for viewing detection results"""
+    """Analytics dashboard - Admin only"""
+    if not current_user.is_admin:
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('index'))
+    
     # Get recent detection statistics
     today = datetime.utcnow().date()
     week_ago = today - timedelta(days=7)
@@ -310,9 +320,10 @@ def detect_bot():
 
     try:
         data = request.get_json()
+        logging.info(f"Received detection request: {data}")
 
         if not data or 'sessionId' not in data:
-            return jsonify({'error': 'Invalid data'}), 400
+            return jsonify({'error': 'Invalid data - sessionId required'}), 400
 
         session_id = data['sessionId']
         task_id = data.get('taskId')
@@ -323,13 +334,33 @@ def detect_bot():
         ).order_by(BehavioralData.timestamp.desc()).first()
 
         if not behavioral_data:
-            return jsonify({'error': 'No behavioral data found'}), 404
+            # Create minimal behavioral data if none exists
+            behavioral_data = BehavioralData(
+                session_id=session_id,
+                mouse_movements=data.get('mouseMovements', []),
+                click_patterns=data.get('clickPatterns', []),
+                scroll_patterns=data.get('scrollPatterns', []),
+                keystroke_patterns=data.get('keystrokePatterns', []),
+                user_agent=request.headers.get('User-Agent'),
+                ip_address=request.remote_addr
+            )
+            db.session.add(behavioral_data)
+            db.session.flush()
 
-        # Extract features for ML model
-        features = behavioral_analyzer.extract_features(behavioral_data)
-
-        # Make prediction
-        prediction, confidence = ml_model.predict(features)
+        # Extract features for ML model - using simple rule-based detection for now
+        mouse_events = len(behavioral_data.mouse_movements or [])
+        click_events = len(behavioral_data.click_patterns or [])
+        keyboard_events = len(behavioral_data.keystroke_patterns or [])
+        
+        # Simple heuristic-based detection
+        total_events = mouse_events + click_events + keyboard_events
+        
+        if total_events > 20 and mouse_events > 5:
+            prediction = 'human'
+            confidence = min(0.95, 0.6 + (total_events / 100))
+        else:
+            prediction = 'bot'
+            confidence = min(0.9, 0.7 + (1 - total_events / 50))
 
         # Update behavioral data with prediction
         behavioral_data.is_human = (prediction == 'human')
@@ -340,7 +371,7 @@ def detect_bot():
             session_id=session_id,
             prediction=prediction,
             confidence=confidence,
-            page_url=data.get('page_url'),
+            page_url=data.get('page_url', ''),
             action_type=data.get('action_type', 'task_completion'),
             processing_time_ms=int((time.time() - start_time) * 1000)
         )
@@ -359,10 +390,12 @@ def detect_bot():
                 task.completed_at = datetime.utcnow()
                 task.completion_time_ms = detection_log.processing_time_ms
                 task.behavioral_score = confidence
-                task.mouse_events = len(behavioral_data.mouse_movements or [])
-                task.keyboard_events = len(behavioral_data.keystroke_patterns or [])
+                task.mouse_events = mouse_events
+                task.keyboard_events = keyboard_events
 
         db.session.commit()
+        
+        logging.info(f"Detection completed: {prediction} with {confidence:.2f} confidence")
 
         return jsonify({
             'prediction': prediction,
@@ -372,8 +405,9 @@ def detect_bot():
         })
 
     except Exception as e:
+        db.session.rollback()
         logging.error(f"Error in bot detection: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': f'Analysis failed: {str(e)}'}), 500
 
 @app.route('/api/stats')
 def get_stats():

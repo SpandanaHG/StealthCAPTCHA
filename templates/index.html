@@ -216,12 +216,27 @@
                     for next-generation web security systems.
                 </p>
                 <div class="d-flex flex-wrap justify-content-center gap-3">
-                    <a href="{{ url_for('research') }}" class="btn btn-primary btn-lg">
-                        <i class="fas fa-microscope me-2"></i>Access Research Interface
-                    </a>
-                    <a href="{{ url_for('analytics') }}" class="btn btn-outline-light btn-lg">
-                        <i class="fas fa-chart-bar me-2"></i>View Research Analytics
-                    </a>
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.is_admin %}
+                            <a href="{{ url_for('research') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-microscope me-2"></i>Access Research Interface
+                            </a>
+                            <a href="{{ url_for('analytics') }}" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-chart-bar me-2"></i>View Analytics
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('user_dashboard') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Register to Test
+                        </a>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>

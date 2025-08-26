@@ -474,13 +474,19 @@
             },
             body: JSON.stringify(detectionPayload)
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data && typeof callback === 'function') {
+            if (typeof callback === 'function') {
                 callback(data);
             }
         })
         .catch(error => {
+            console.error('StealthCAPTCHA: Bot detection error:', error.message);
             if (typeof callback === 'function') {
                 callback({ error: error.message });
             }
