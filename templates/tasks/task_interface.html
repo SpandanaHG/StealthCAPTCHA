@@ -37,9 +37,10 @@
                     </div>
 
                     <div class="mt-4">
-                        <button id="complete-task" class="btn btn-success" style="display: none;">
+                        <button id="complete-task" class="btn btn-primary" style="display: none;">
                             <i class="fas fa-check me-2"></i>Complete Task
                         </button>
+                        <div id="task-result" class="mt-3" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -291,14 +292,14 @@ function updateTypingProgress() {
     }
 }
 
-function completeTask() {
+function completeTask(submitButton, resultDiv) {
     if (taskCompleted) return;
 
     taskCompleted = true;
     updateProgress('Analyzing behavioral data...');
 
-    const submitButton = document.getElementById('completeTaskBtn');
-    const resultDiv = document.getElementById('taskResult');
+    if (!submitButton) submitButton = document.getElementById('complete-task');
+    if (!resultDiv) resultDiv = document.getElementById('task-result');
 
     submitButton.disabled = true;
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
@@ -416,43 +417,6 @@ function completeTask() {
         // Allow retry
         taskCompleted = false;
     });
-}a.keystrokePatterns || [],
-        scrollPatterns: currentData.scrollPatterns || []
-    };
-
-    console.log('Sending detection data with events:', {
-        mouse: detectionData.mouseMovements.length,
-        clicks: detectionData.clickPatterns.length,
-        keys: detectionData.keystrokePatterns.length,
-        scrolls: detectionData.scrollPatterns.length
-    });
-
-    // Perform bot detection
-    fetch('/api/detect_bot', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(detectionData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.prediction) {
-            updateProgress(`Task completed! Classification: ${data.prediction} (${(data.confidence * 100).toFixed(1)}% confidence)`);
-
-            setTimeout(() => {
-                window.location.href = '/dashboard';
-            }, 3000);
-        } else {
-            updateProgress('Error during analysis. Please try again.');
-            taskCompleted = false;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        updateProgress('Network error. Please try again.');
-        taskCompleted = false;
-    });
 }
 
 // Initialize when page loads
@@ -467,7 +431,14 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeTask();
 
     // Bind complete task button
-    document.getElementById('complete-task').addEventListener('click', completeTask);
+    document.getElementById('complete-task').addEventListener('click', function() {
+        const button = this;
+        const resultDiv = document.getElementById('task-result');
+        
+        if (taskCompleted) return;
+        
+        completeTask(button, resultDiv);
+    });
 
     console.log('Task interface initialized with session ID:', sessionId);
 });
