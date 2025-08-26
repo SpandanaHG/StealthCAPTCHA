@@ -203,7 +203,7 @@ def research():
     if not current_user.is_admin:
         flash('Access denied. Admin privileges required.', 'error')
         return redirect(url_for('index'))
-    
+
     if 'session_id' not in session:
         session['session_id'] = str(uuid.uuid4())
     return render_template('research.html', session_id=session['session_id'])
@@ -225,7 +225,7 @@ def analytics():
     if not current_user.is_admin:
         flash('Access denied. Admin privileges required.', 'error')
         return redirect(url_for('index'))
-    
+
     # Get recent detection statistics
     today = datetime.utcnow().date()
     week_ago = today - timedelta(days=7)
@@ -333,7 +333,7 @@ def detect_bot():
         request_clicks = data.get('clickPatterns', [])
         request_keys = data.get('keystrokePatterns', [])
         request_scrolls = data.get('scrollPatterns', [])
-        
+
         # Also get data from the global behavioral tracker if available
         if hasattr(window, 'behavioralData'):
             try:
@@ -341,7 +341,7 @@ def detect_bot():
                 pass
             except:
                 pass
-        
+
         # Get recent behavioral data from database for this session
         behavioral_data = BehavioralData.query.filter_by(
             session_id=session_id
@@ -352,7 +352,7 @@ def detect_bot():
         all_click_events = request_clicks[:]
         all_keyboard_events = request_keys[:]
         all_scroll_events = request_scrolls[:]
-        
+
         if behavioral_data:
             # Add existing data from database
             if behavioral_data.mouse_movements:
@@ -363,7 +363,7 @@ def detect_bot():
                 all_keyboard_events.extend(behavioral_data.keystroke_patterns)
             if behavioral_data.scroll_patterns:
                 all_scroll_events.extend(behavioral_data.scroll_patterns)
-        
+
         # Create or update behavioral data record
         if not behavioral_data:
             behavioral_data = BehavioralData(
@@ -389,7 +389,7 @@ def detect_bot():
         click_events = len(all_click_events)
         keyboard_events = len(all_keyboard_events)
         scroll_events = len(all_scroll_events)
-        
+
         logging.info(f"Session ID: {session_id}")
         logging.info(f"Event counts - Mouse: {mouse_events}, Clicks: {click_events}, Keyboard: {keyboard_events}, Scrolls: {scroll_events}")
         logging.info(f"Request data keys: {list(data.keys())}")
@@ -397,36 +397,21 @@ def detect_bot():
             logging.info(f"Mouse movements in request: {len(data.get('mouseMovements', []))}")
         if data.get('clickPatterns'):
             logging.info(f"Click patterns in request: {len(data.get('clickPatterns', []))}")
-        
-        # Simple bot detection logic based on minimum thresholds
-        # BOT: If ANY of these conditions are true
-        # - Mouse events < 15
-        # - Click events < 2  
-        # - Keystroke events < 2
-        # - Scroll events < 2
-        
-        is_bot = (mouse_events < 15 or 
-                 click_events < 2 or 
-                 keyboard_events < 2 or 
-                 scroll_events < 2)
-        
-        if is_bot:
+
+        # Simplified bot detection logic - primary focus on clicks
+        # BOT: If clicks <= 2 (insufficient interaction for task completion)
+        # HUMAN: If clicks >= 3 (shows meaningful human interaction)
+
+        # Primary bot detection based on clicks
+        if click_events <= 2:
             prediction = 'bot'
-            confidence = 0.85
-            reason = []
-            if mouse_events < 15:
-                reason.append(f"insufficient_mouse_movement({mouse_events}<15)")
-            if click_events < 2:
-                reason.append(f"insufficient_clicks({click_events}<2)")
-            if keyboard_events < 2:
-                reason.append(f"insufficient_keystrokes({keyboard_events}<2)")
-            if scroll_events < 2:
-                reason.append(f"insufficient_scrolling({scroll_events}<2)")
+            confidence = 0.90
+            reason = [f"insufficient_clicks({click_events}<=2)"]
         else:
             prediction = 'human'
-            confidence = 0.90
-            reason = [f"sufficient_interaction(mouse:{mouse_events},clicks:{click_events},keys:{keyboard_events},scrolls:{scroll_events})"]
-        
+            confidence = 0.85
+            reason = [f"sufficient_clicks({click_events}>=3)"]
+
         logging.info(f"Prediction: {prediction}, Confidence: {confidence:.2f}, Reason: {', '.join(reason)}")
 
         # Update behavioral data with prediction
@@ -461,7 +446,7 @@ def detect_bot():
                 task.keyboard_events = keyboard_events
 
         db.session.commit()
-        
+
         logging.info(f"Detection completed: {prediction} with {confidence:.2f} confidence")
 
         return jsonify({
