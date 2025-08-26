@@ -476,10 +476,14 @@
         })
         .then(response => response.json())
         .then(data => {
-            callback(data);
+            if (data && typeof callback === 'function') {
+                callback(data);
+            }
         })
         .catch(error => {
-            callback({ error: error.message });
+            if (typeof callback === 'function') {
+                callback({ error: error.message });
+            }
         });
     }
 

@@ -1,4 +1,3 @@
-
 from flask import render_template, request, jsonify, session, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from app import app, db
@@ -25,35 +24,35 @@ def register():
     """User registration"""
     if request.method == 'POST':
         data = request.get_json() if request.is_json else request.form
-        
+
         username = data.get('username')
         email = data.get('email')
         password = data.get('password')
-        
+
         # Validate input
         if not username or not email or not password:
             return jsonify({'error': 'All fields are required'}), 400
-        
+
         # Check if user already exists
         if User.query.filter_by(username=username).first():
             return jsonify({'error': 'Username already exists'}), 400
-        
+
         if User.query.filter_by(email=email).first():
             return jsonify({'error': 'Email already registered'}), 400
-        
+
         # Create new user
         user = User(username=username, email=email)
         user.set_password(password)
-        
+
         db.session.add(user)
         db.session.commit()
-        
+
         if request.is_json:
             return jsonify({'success': True, 'message': 'Registration successful'})
         else:
             flash('Registration successful! Please log in.', 'success')
             return redirect(url_for('login'))
-    
+
     return render_template('auth/register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -61,31 +60,31 @@ def login():
     """User login"""
     if request.method == 'POST':
         data = request.get_json() if request.is_json else request.form
-        
+
         username = data.get('username')
         password = data.get('password')
-        
+
         if not username or not password:
             return jsonify({'error': 'Username and password are required'}), 400
-        
+
         user = User.query.filter_by(username=username).first()
-        
+
         if user and user.check_password(password):
             if user.is_blocked:
                 return jsonify({'error': 'Your account has been blocked due to suspicious behavior'}), 403
-            
+
             login_user(user)
             user.last_login = datetime.utcnow()
             db.session.commit()
-            
+
             if request.is_json:
                 redirect_url = url_for('admin_dashboard') if user.is_admin else url_for('user_dashboard')
                 return jsonify({'success': True, 'redirect': redirect_url})
             else:
                 return redirect(url_for('admin_dashboard') if user.is_admin else url_for('user_dashboard'))
-        
+
         return jsonify({'error': 'Invalid username or password'}), 401
-    
+
     return render_template('auth/login.html')
 
 @app.route('/logout')
@@ -101,20 +100,20 @@ def user_dashboard():
     """User dashboard with behavioral tasks"""
     if current_user.is_admin:
         return redirect(url_for('admin_dashboard'))
-    
+
     # Get user's tasks
     user_tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
-    
+
     # Create new tasks if user has completed all or has none
     if len([t for t in user_tasks if t.status == 'pending']) == 0:
         create_user_tasks(current_user.id)
         user_tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
-    
+
     # Get user's behavioral statistics
     recent_detections = DetectionLog.query.filter_by(
         session_id=session.get('session_id', '')
     ).order_by(DetectionLog.timestamp.desc()).limit(5).all()
-    
+
     return render_template('dashboard/user_dashboard.html', 
                          tasks=user_tasks, 
                          recent_detections=recent_detections)
@@ -125,22 +124,22 @@ def admin_dashboard():
     """Admin dashboard for user management and analytics"""
     if not current_user.is_admin:
         return redirect(url_for('user_dashboard'))
-    
+
     # Get all users with their behavioral statistics
     users = User.query.filter_by(is_admin=False).order_by(User.created_at.desc()).all()
-    
+
     # Recent detections
     recent_detections = DetectionLog.query.order_by(DetectionLog.timestamp.desc()).limit(100).all()
-    
+
     # Overall statistics
     total_users = len(users)
     active_users = len([u for u in users if u.last_login and u.last_login > datetime.utcnow() - timedelta(days=7)])
     blocked_users = len([u for u in users if u.is_blocked])
     suspected_bots = len([u for u in users if u.is_likely_bot])
-    
+
     # Model metrics
     latest_metrics = ModelMetrics.query.order_by(ModelMetrics.timestamp.desc()).first()
-    
+
     stats = {
         'total_users': total_users,
         'active_users': active_users,
@@ -150,7 +149,7 @@ def admin_dashboard():
         'human_detections': len([d for d in recent_detections if d.prediction == 'human']),
         'bot_detections': len([d for d in recent_detections if d.prediction == 'bot'])
     }
-    
+
     return render_template('dashboard/admin_dashboard.html',
                          users=users,
                          stats=stats,
@@ -163,11 +162,11 @@ def block_user(user_id):
     """Block a user"""
     if not current_user.is_admin:
         return jsonify({'error': 'Unauthorized'}), 403
-    
+
     user = User.query.get_or_404(user_id)
     user.is_blocked = True
     db.session.commit()
-    
+
     return jsonify({'success': True, 'message': f'User {user.username} has been blocked'})
 
 @app.route('/admin/unblock_user/<int:user_id>', methods=['POST'])
@@ -176,11 +175,11 @@ def unblock_user(user_id):
     """Unblock a user"""
     if not current_user.is_admin:
         return jsonify({'error': 'Unauthorized'}), 403
-    
+
     user = User.query.get_or_404(user_id)
     user.is_blocked = False
     db.session.commit()
-    
+
     return jsonify({'success': True, 'message': f'User {user.username} has been unblocked'})
 
 @app.route('/task/<int:task_id>')
@@ -188,13 +187,13 @@ def unblock_user(user_id):
 def perform_task(task_id):
     """Task performance page"""
     task = Task.query.get_or_404(task_id)
-    
+
     if task.user_id != current_user.id:
         return redirect(url_for('user_dashboard'))
-    
+
     if 'session_id' not in session:
         session['session_id'] = str(uuid.uuid4())
-    
+
     return render_template('tasks/task_interface.html', task=task, session_id=session['session_id'])
 
 @app.route('/research')
@@ -220,32 +219,32 @@ def analytics():
     # Get recent detection statistics
     today = datetime.utcnow().date()
     week_ago = today - timedelta(days=7)
-    
+
     # Recent detections
     recent_detections = DetectionLog.query.filter(
         DetectionLog.timestamp >= week_ago
     ).order_by(DetectionLog.timestamp.desc()).limit(100).all()
-    
+
     # Statistics
     total_detections = DetectionLog.query.filter(
         DetectionLog.timestamp >= week_ago
     ).count()
-    
+
     human_detections = DetectionLog.query.filter(
         DetectionLog.timestamp >= week_ago,
         DetectionLog.prediction == 'human'
     ).count()
-    
+
     bot_detections = DetectionLog.query.filter(
         DetectionLog.timestamp >= week_ago,
         DetectionLog.prediction == 'bot'
     ).count()
-    
+
     # Model metrics
     latest_metrics = ModelMetrics.query.order_by(
         ModelMetrics.timestamp.desc()
     ).first()
-    
+
     stats = {
         'total_detections': total_detections,
         'human_detections': human_detections,
@@ -253,7 +252,7 @@ def analytics():
         'human_percentage': (human_detections / total_detections * 100) if total_detections > 0 else 0,
         'bot_percentage': (bot_detections / total_detections * 100) if total_detections > 0 else 0
     }
-    
+
     return render_template('analytics.html', 
                          recent_detections=recent_detections,
                          stats=stats,
@@ -266,12 +265,12 @@ def collect_behavioral_data():
     """Endpoint to collect behavioral data from frontend"""
     try:
         data = request.get_json()
-        
+
         if not data or 'sessionId' not in data:
             return jsonify({'error': 'Invalid data'}), 400
-        
+
         session_id = data['sessionId']
-        
+
         # Create new behavioral data record
         behavioral_data = BehavioralData(
             session_id=session_id,
@@ -286,20 +285,20 @@ def collect_behavioral_data():
             platform=data.get('deviceFingerprint', {}).get('platform'),
             ip_address=request.remote_addr
         )
-        
+
         # Analyze behavioral patterns
         metrics = behavioral_analyzer.analyze_patterns(data)
         behavioral_data.mouse_velocity_avg = metrics.get('mouse_velocity_avg')
         behavioral_data.mouse_velocity_std = metrics.get('mouse_velocity_std')
         behavioral_data.click_frequency = metrics.get('click_frequency')
         behavioral_data.typing_rhythm_consistency = metrics.get('typing_rhythm_consistency')
-        
+
         # Save to database
         db.session.add(behavioral_data)
         db.session.commit()
-        
+
         return jsonify({'status': 'success', 'data_id': behavioral_data.id})
-    
+
     except Exception as e:
         logging.error(f"Error collecting behavioral data: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
@@ -308,34 +307,34 @@ def collect_behavioral_data():
 def detect_bot():
     """Endpoint to perform bot detection analysis"""
     start_time = time.time()
-    
+
     try:
         data = request.get_json()
-        
+
         if not data or 'sessionId' not in data:
             return jsonify({'error': 'Invalid data'}), 400
-        
+
         session_id = data['sessionId']
         task_id = data.get('taskId')
-        
+
         # Get recent behavioral data for this session
         behavioral_data = BehavioralData.query.filter_by(
             session_id=session_id
         ).order_by(BehavioralData.timestamp.desc()).first()
-        
+
         if not behavioral_data:
             return jsonify({'error': 'No behavioral data found'}), 404
-        
+
         # Extract features for ML model
         features = behavioral_analyzer.extract_features(behavioral_data)
-        
+
         # Make prediction
         prediction, confidence = ml_model.predict(features)
-        
+
         # Update behavioral data with prediction
         behavioral_data.is_human = (prediction == 'human')
         behavioral_data.confidence_score = confidence
-        
+
         # Log the detection
         detection_log = DetectionLog(
             session_id=session_id,
@@ -345,13 +344,13 @@ def detect_bot():
             action_type=data.get('action_type', 'task_completion'),
             processing_time_ms=int((time.time() - start_time) * 1000)
         )
-        
+
         db.session.add(detection_log)
-        
+
         # Update user behavioral statistics if logged in
         if current_user.is_authenticated and not current_user.is_admin:
             current_user.update_behavioral_stats(prediction, confidence)
-        
+
         # Update task if provided
         if task_id and current_user.is_authenticated:
             task = Task.query.filter_by(id=task_id, user_id=current_user.id).first()
@@ -362,16 +361,16 @@ def detect_bot():
                 task.behavioral_score = confidence
                 task.mouse_events = len(behavioral_data.mouse_movements or [])
                 task.keyboard_events = len(behavioral_data.keystroke_patterns or [])
-        
+
         db.session.commit()
-        
+
         return jsonify({
             'prediction': prediction,
             'confidence': confidence,
             'is_human': prediction == 'human',
             'processing_time_ms': detection_log.processing_time_ms
         })
-    
+
     except Exception as e:
         logging.error(f"Error in bot detection: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
@@ -382,15 +381,15 @@ def get_stats():
     try:
         # Get statistics for the last 24 hours
         yesterday = datetime.utcnow() - timedelta(days=1)
-        
+
         recent_detections = DetectionLog.query.filter(
             DetectionLog.timestamp >= yesterday
         ).all()
-        
+
         total = len(recent_detections)
         human_count = sum(1 for d in recent_detections if d.prediction == 'human')
         bot_count = total - human_count
-        
+
         # Hourly breakdown for charts
         hourly_data = {}
         for detection in recent_detections:
@@ -398,14 +397,14 @@ def get_stats():
             if hour not in hourly_data:
                 hourly_data[hour] = {'human': 0, 'bot': 0}
             hourly_data[hour][detection.prediction] += 1
-        
+
         return jsonify({
             'total_detections': total,
             'human_detections': human_count,
             'bot_detections': bot_count,
             'hourly_data': hourly_data
         })
-    
+
     except Exception as e:
         logging.error(f"Error getting stats: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
@@ -416,9 +415,9 @@ def get_users_data():
     """Get users data for admin charts"""
     if not current_user.is_admin:
         return jsonify({'error': 'Unauthorized'}), 403
-    
+
     users = User.query.filter_by(is_admin=False).all()
-    
+
     # Prepare data for charts
     user_data = []
     for user in users:
@@ -431,7 +430,7 @@ def get_users_data():
             'is_blocked': user.is_blocked,
             'last_login': user.last_login.isoformat() if user.last_login else None
         })
-    
+
     return jsonify({'users': user_data})
 
 def create_user_tasks(user_id):
@@ -458,10 +457,10 @@ def create_user_tasks(user_id):
             'task_type': 'mouse_tracking'
         }
     ]
-    
+
     # Create 2-3 random tasks for the user
     selected_tasks = random.sample(task_templates, k=min(3, len(task_templates)))
-    
+
     for template in selected_tasks:
         task = Task(
             user_id=user_id,
@@ -470,5 +469,5 @@ def create_user_tasks(user_id):
             task_type=template['task_type']
         )
         db.session.add(task)
-    
+
     db.session.commit()
