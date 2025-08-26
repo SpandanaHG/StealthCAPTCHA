@@ -37,11 +37,11 @@
     /**
      * Initialize the behavioral tracker
      */
-    function init() {
+    function init(providedSessionId) {
         if (isTracking) return;
 
-        // Generate or retrieve session ID
-        behavioralData.sessionId = generateSessionId();
+        // Use provided session ID if available, otherwise generate one
+        behavioralData.sessionId = providedSessionId || generateSessionId();
 
         // Collect device fingerprint
         collectDeviceFingerprint();
@@ -52,8 +52,11 @@
         // Start data collection timer
         startDataCollection();
 
+        // Expose behavioral data globally for task interface
+        window.behavioralData = behavioralData;
+
         isTracking = true;
-        console.log('StealthCAPTCHA: Behavioral tracking initialized');
+        console.log('StealthCAPTCHA: Behavioral tracking initialized with session:', behavioralData.sessionId);
     }
 
     /**
@@ -536,9 +539,11 @@
 
     // Auto-initialize when DOM is ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', function() {
+            init(window.taskSessionId);
+        });
     } else {
-        init();
+        init(window.taskSessionId);
     }
 
 })();

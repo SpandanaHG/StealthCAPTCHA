@@ -333,8 +333,8 @@ def detect_bot():
             session_id=session_id
         ).order_by(BehavioralData.timestamp.desc()).first()
 
+        # If no behavioral data exists in DB, use data from request or create minimal data
         if not behavioral_data:
-            # Create minimal behavioral data if none exists
             behavioral_data = BehavioralData(
                 session_id=session_id,
                 mouse_movements=data.get('mouseMovements', []),
@@ -346,6 +346,27 @@ def detect_bot():
             )
             db.session.add(behavioral_data)
             db.session.flush()
+        else:
+            # Update existing behavioral data with any new data from request
+            if data.get('mouseMovements'):
+                existing_mouse = behavioral_data.mouse_movements or []
+                new_mouse = data.get('mouseMovements', [])
+                behavioral_data.mouse_movements = existing_mouse + new_mouse
+                
+            if data.get('clickPatterns'):
+                existing_clicks = behavioral_data.click_patterns or []
+                new_clicks = data.get('clickPatterns', [])
+                behavioral_data.click_patterns = existing_clicks + new_clicks
+                
+            if data.get('keystrokePatterns'):
+                existing_keys = behavioral_data.keystroke_patterns or []
+                new_keys = data.get('keystrokePatterns', [])
+                behavioral_data.keystroke_patterns = existing_keys + new_keys
+                
+            if data.get('scrollPatterns'):
+                existing_scroll = behavioral_data.scroll_patterns or []
+                new_scroll = data.get('scrollPatterns', [])
+                behavioral_data.scroll_patterns = existing_scroll + new_scroll
 
         # Extract features for ML model - human vs bot detection
         mouse_events = len(behavioral_data.mouse_movements or [])
@@ -353,7 +374,13 @@ def detect_bot():
         keyboard_events = len(behavioral_data.keystroke_patterns or [])
         scroll_events = len(behavioral_data.scroll_patterns or [])
         
+        logging.info(f"Session ID: {session_id}")
         logging.info(f"Event counts - Mouse: {mouse_events}, Clicks: {click_events}, Keyboard: {keyboard_events}, Scrolls: {scroll_events}")
+        logging.info(f"Request data keys: {list(data.keys())}")
+        if data.get('mouseMovements'):
+            logging.info(f"Mouse movements in request: {len(data.get('mouseMovements', []))}")
+        if data.get('clickPatterns'):
+            logging.info(f"Click patterns in request: {len(data.get('clickPatterns', []))}")
         
         # Total meaningful interactions
         total_interactions = mouse_events + click_events + keyboard_events + scroll_events

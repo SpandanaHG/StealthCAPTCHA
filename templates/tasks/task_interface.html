@@ -106,7 +106,7 @@ function initTaskBehavioralTracking() {
     if (typeof initBehavioralTracking === 'function') {
         initBehavioralTracking();
     }
-    
+
     // Additional task-specific tracking
     document.addEventListener('mousemove', function(e) {
         mouseEvents++;
@@ -335,16 +335,16 @@ function completeTask() {
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize task-specific behavioral tracking first
     initTaskBehavioralTracking();
-    
+
     // Then setup task-specific event tracking
     setupEventTracking();
-    
+
     // Initialize the task interface
     initializeTask();
 
     // Bind complete task button
     document.getElementById('complete-task').addEventListener('click', completeTask);
-    
+
     console.log('Task interface initialized with session ID:', sessionId);
 });
 </script>
