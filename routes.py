@@ -334,13 +334,8 @@ def detect_bot():
         request_keys = data.get('keystrokePatterns', [])
         request_scrolls = data.get('scrollPatterns', [])
 
-        # Also get data from the global behavioral tracker if available
-        if hasattr(window, 'behavioralData'):
-            try:
-                # This would be from the frontend tracker
-                pass
-            except:
-                pass
+        # Note: All behavioral data is now collected via the request payload
+        # No need to access browser window object from Python backend
 
         # Get recent behavioral data from database for this session
         behavioral_data = BehavioralData.query.filter_by(
