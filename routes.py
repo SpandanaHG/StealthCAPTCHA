@@ -347,20 +347,58 @@ def detect_bot():
             db.session.add(behavioral_data)
             db.session.flush()
 
-        # Extract features for ML model - using simple rule-based detection for now
+        # Extract features for ML model - improved heuristic-based detection
         mouse_events = len(behavioral_data.mouse_movements or [])
         click_events = len(behavioral_data.click_patterns or [])
         keyboard_events = len(behavioral_data.keystroke_patterns or [])
+        scroll_events = len(behavioral_data.scroll_patterns or [])
         
-        # Simple heuristic-based detection
-        total_events = mouse_events + click_events + keyboard_events
+        # More realistic human detection logic
+        total_events = mouse_events + click_events + keyboard_events + scroll_events
         
-        if total_events > 20 and mouse_events > 5:
+        # Human indicators:
+        # - Some mouse movement (shows natural cursor control)
+        # - Reasonable click count (not too many, not too few)
+        # - Mixed interaction types (mouse + keyboard or scroll)
+        # - Total activity suggests engagement
+        
+        human_score = 0
+        
+        # Mouse movement scoring
+        if mouse_events > 3:
+            human_score += 30
+        if mouse_events > 10:
+            human_score += 20
+            
+        # Click pattern scoring  
+        if 1 <= click_events <= 20:
+            human_score += 25
+        if click_events > 0:
+            human_score += 15
+            
+        # Keyboard interaction scoring
+        if keyboard_events > 0:
+            human_score += 20
+        if keyboard_events > 5:
+            human_score += 15
+            
+        # Scroll behavior scoring
+        if scroll_events > 0:
+            human_score += 10
+            
+        # Total engagement scoring
+        if total_events > 10:
+            human_score += 10
+        if total_events > 25:
+            human_score += 15
+            
+        # Determine prediction based on human score
+        if human_score >= 50:
             prediction = 'human'
-            confidence = min(0.95, 0.6 + (total_events / 100))
+            confidence = min(0.95, 0.65 + (human_score / 200))
         else:
             prediction = 'bot'
-            confidence = min(0.9, 0.7 + (1 - total_events / 50))
+            confidence = min(0.85, 0.60 + ((100 - human_score) / 200))
 
         # Update behavioral data with prediction
         behavioral_data.is_human = (prediction == 'human')
