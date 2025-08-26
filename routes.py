@@ -328,28 +328,32 @@ def detect_bot():
         session_id = data['sessionId']
         task_id = data.get('taskId')
 
-        # First, get behavioral data from the current request (real-time data)
+        # Get behavioral data from the current request ONLY (for task completion detection)
         request_mouse = data.get('mouseMovements', [])
         request_clicks = data.get('clickPatterns', [])
         request_keys = data.get('keystrokePatterns', [])
         request_scrolls = data.get('scrollPatterns', [])
 
-        # Note: All behavioral data is now collected via the request payload
-        # No need to access browser window object from Python backend
+        # For task completion detection, ONLY use current task data
+        # This prevents false positives from accumulated session data
+        current_task_clicks = len(request_clicks)
+        current_task_mouse = len(request_mouse)
+        current_task_keyboard = len(request_keys)
+        current_task_scrolls = len(request_scrolls)
 
-        # Get recent behavioral data from database for this session
+        # Still save to database for historical tracking
         behavioral_data = BehavioralData.query.filter_by(
             session_id=session_id
         ).order_by(BehavioralData.timestamp.desc()).first()
 
-        # Combine all available data sources
+        # Combine all available data sources for database storage
         all_mouse_events = request_mouse[:]
         all_click_events = request_clicks[:]
         all_keyboard_events = request_keys[:]
         all_scroll_events = request_scrolls[:]
 
         if behavioral_data:
-            # Add existing data from database
+            # Add existing data from database for storage
             if behavioral_data.mouse_movements:
                 all_mouse_events.extend(behavioral_data.mouse_movements)
             if behavioral_data.click_patterns:
@@ -359,7 +363,7 @@ def detect_bot():
             if behavioral_data.scroll_patterns:
                 all_scroll_events.extend(behavioral_data.scroll_patterns)
 
-        # Create or update behavioral data record
+        # Create or update behavioral data record for storage
         if not behavioral_data:
             behavioral_data = BehavioralData(
                 session_id=session_id,
@@ -379,33 +383,30 @@ def detect_bot():
             behavioral_data.keystroke_patterns = all_keyboard_events
             behavioral_data.scroll_patterns = all_scroll_events
 
-        # Extract features for ML model - human vs bot detection
-        mouse_events = len(all_mouse_events)
-        click_events = len(all_click_events)
-        keyboard_events = len(all_keyboard_events)
-        scroll_events = len(all_scroll_events)
+        # Use ONLY current task data for detection (not accumulated data)
+        mouse_events = current_task_mouse
+        click_events = current_task_clicks
+        keyboard_events = current_task_keyboard
+        scroll_events = current_task_scrolls
 
         logging.info(f"Session ID: {session_id}")
-        logging.info(f"Event counts - Mouse: {mouse_events}, Clicks: {click_events}, Keyboard: {keyboard_events}, Scrolls: {scroll_events}")
+        logging.info(f"CURRENT TASK Events - Mouse: {mouse_events}, Clicks: {click_events}, Keyboard: {keyboard_events}, Scrolls: {scroll_events}")
+        logging.info(f"ACCUMULATED Events - Mouse: {len(all_mouse_events)}, Clicks: {len(all_click_events)}, Keyboard: {len(all_keyboard_events)}, Scrolls: {len(all_scroll_events)}")
         logging.info(f"Request data keys: {list(data.keys())}")
-        if data.get('mouseMovements'):
-            logging.info(f"Mouse movements in request: {len(data.get('mouseMovements', []))}")
-        if data.get('clickPatterns'):
-            logging.info(f"Click patterns in request: {len(data.get('clickPatterns', []))}")
 
-        # Simplified bot detection logic - primary focus on clicks
-        # BOT: If clicks <= 2 (insufficient interaction for task completion)
-        # HUMAN: If clicks >= 3 (shows meaningful human interaction)
+        # Simplified bot detection logic - ONLY uses current task clicks
+        # BOT: If current task clicks <= 2 (insufficient interaction for task completion)
+        # HUMAN: If current task clicks >= 3 (shows meaningful human interaction)
 
-        # Primary bot detection based on clicks
+        # Primary bot detection based on CURRENT TASK clicks only
         if click_events <= 2:
             prediction = 'bot'
             confidence = 0.90
-            reason = [f"insufficient_clicks({click_events}<=2)"]
+            reason = [f"insufficient_current_task_clicks({click_events}<=2)"]
         else:
             prediction = 'human'
             confidence = 0.85
-            reason = [f"sufficient_clicks({click_events}>=3)"]
+            reason = [f"sufficient_current_task_clicks({click_events}>=3)"]
 
         logging.info(f"Prediction: {prediction}, Confidence: {confidence:.2f}, Reason: {', '.join(reason)}")
 
@@ -429,7 +430,7 @@ def detect_bot():
         if current_user.is_authenticated and not current_user.is_admin:
             current_user.update_behavioral_stats(prediction, confidence)
 
-        # Update task if provided
+        # Update task if provided (using current task data, not accumulated)
         if task_id and current_user.is_authenticated:
             task = Task.query.filter_by(id=task_id, user_id=current_user.id).first()
             if task:
@@ -437,8 +438,8 @@ def detect_bot():
                 task.completed_at = datetime.utcnow()
                 task.completion_time_ms = detection_log.processing_time_ms
                 task.behavioral_score = confidence
-                task.mouse_events = mouse_events
-                task.keyboard_events = keyboard_events
+                task.mouse_events = current_task_mouse  # Current task only
+                task.keyboard_events = current_task_keyboard  # Current task only
 
         db.session.commit()
 
