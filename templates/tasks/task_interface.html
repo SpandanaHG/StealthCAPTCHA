@@ -297,19 +297,41 @@ function completeTask() {
     taskCompleted = true;
     updateProgress('Analyzing behavioral data...');
 
-    const payload = {
+    const submitButton = document.getElementById('completeTaskBtn');
+    const resultDiv = document.getElementById('taskResult');
+
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+
+    // Get current behavioral data from the tracker
+    const currentData = window.behavioralData || {};
+
+    // Prepare detection data with current behavioral information
+    const detectionData = {
         sessionId: sessionId,
         taskId: taskId,
         page_url: window.location.pathname,
-        action_type: 'task_completion'
+        action_type: 'task_completion',
+        mouseMovements: currentData.mouseMovements || [],
+        clickPatterns: currentData.clickPatterns || [],
+        keystrokePatterns: currentData.keystrokePatterns || [],
+        scrollPatterns: currentData.scrollPatterns || []
     };
 
+    console.log('Sending detection data with events:', {
+        mouse: detectionData.mouseMovements.length,
+        clicks: detectionData.clickPatterns.length,
+        keys: detectionData.keystrokePatterns.length,
+        scrolls: detectionData.scrollPatterns.length
+    });
+
+    // Perform bot detection
     fetch('/api/detect_bot', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(detectionData)
     })
     .then(response => response.json())
     .then(data => {

@@ -328,51 +328,67 @@ def detect_bot():
         session_id = data['sessionId']
         task_id = data.get('taskId')
 
-        # Get recent behavioral data for this session
+        # First, get behavioral data from the current request (real-time data)
+        request_mouse = data.get('mouseMovements', [])
+        request_clicks = data.get('clickPatterns', [])
+        request_keys = data.get('keystrokePatterns', [])
+        request_scrolls = data.get('scrollPatterns', [])
+        
+        # Also get data from the global behavioral tracker if available
+        if hasattr(window, 'behavioralData'):
+            try:
+                # This would be from the frontend tracker
+                pass
+            except:
+                pass
+        
+        # Get recent behavioral data from database for this session
         behavioral_data = BehavioralData.query.filter_by(
             session_id=session_id
         ).order_by(BehavioralData.timestamp.desc()).first()
 
-        # If no behavioral data exists in DB, use data from request or create minimal data
+        # Combine all available data sources
+        all_mouse_events = request_mouse[:]
+        all_click_events = request_clicks[:]
+        all_keyboard_events = request_keys[:]
+        all_scroll_events = request_scrolls[:]
+        
+        if behavioral_data:
+            # Add existing data from database
+            if behavioral_data.mouse_movements:
+                all_mouse_events.extend(behavioral_data.mouse_movements)
+            if behavioral_data.click_patterns:
+                all_click_events.extend(behavioral_data.click_patterns)
+            if behavioral_data.keystroke_patterns:
+                all_keyboard_events.extend(behavioral_data.keystroke_patterns)
+            if behavioral_data.scroll_patterns:
+                all_scroll_events.extend(behavioral_data.scroll_patterns)
+        
+        # Create or update behavioral data record
         if not behavioral_data:
             behavioral_data = BehavioralData(
                 session_id=session_id,
-                mouse_movements=data.get('mouseMovements', []),
-                click_patterns=data.get('clickPatterns', []),
-                scroll_patterns=data.get('scrollPatterns', []),
-                keystroke_patterns=data.get('keystrokePatterns', []),
+                mouse_movements=all_mouse_events,
+                click_patterns=all_click_events,
+                scroll_patterns=all_scroll_events,
+                keystroke_patterns=all_keyboard_events,
                 user_agent=request.headers.get('User-Agent'),
                 ip_address=request.remote_addr
             )
             db.session.add(behavioral_data)
             db.session.flush()
         else:
-            # Update existing behavioral data with any new data from request
-            if data.get('mouseMovements'):
-                existing_mouse = behavioral_data.mouse_movements or []
-                new_mouse = data.get('mouseMovements', [])
-                behavioral_data.mouse_movements = existing_mouse + new_mouse
-                
-            if data.get('clickPatterns'):
-                existing_clicks = behavioral_data.click_patterns or []
-                new_clicks = data.get('clickPatterns', [])
-                behavioral_data.click_patterns = existing_clicks + new_clicks
-                
-            if data.get('keystrokePatterns'):
-                existing_keys = behavioral_data.keystroke_patterns or []
-                new_keys = data.get('keystrokePatterns', [])
-                behavioral_data.keystroke_patterns = existing_keys + new_keys
-                
-            if data.get('scrollPatterns'):
-                existing_scroll = behavioral_data.scroll_patterns or []
-                new_scroll = data.get('scrollPatterns', [])
-                behavioral_data.scroll_patterns = existing_scroll + new_scroll
+            # Update with combined data
+            behavioral_data.mouse_movements = all_mouse_events
+            behavioral_data.click_patterns = all_click_events
+            behavioral_data.keystroke_patterns = all_keyboard_events
+            behavioral_data.scroll_patterns = all_scroll_events
 
         # Extract features for ML model - human vs bot detection
-        mouse_events = len(behavioral_data.mouse_movements or [])
-        click_events = len(behavioral_data.click_patterns or [])
-        keyboard_events = len(behavioral_data.keystroke_patterns or [])
-        scroll_events = len(behavioral_data.scroll_patterns or [])
+        mouse_events = len(all_mouse_events)
+        click_events = len(all_click_events)
+        keyboard_events = len(all_keyboard_events)
+        scroll_events = len(all_scroll_events)
         
         logging.info(f"Session ID: {session_id}")
         logging.info(f"Event counts - Mouse: {mouse_events}, Clicks: {click_events}, Keyboard: {keyboard_events}, Scrolls: {scroll_events}")
