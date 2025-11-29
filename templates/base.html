@@ -39,59 +39,42 @@
                             <i class="fas fa-home me-1"></i>Home
                         </a>
                     </li>
-                    {% if current_user.is_authenticated and current_user.is_admin %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('research') }}">
-                            <i class="fas fa-microscope me-1"></i>Research
-                        </a>
-                    </li>
-                    {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('about') }}">
-                            <i class="fas fa-info-circle me-1"></i>About
-                        </a>
-                    </li>
-                    {% if current_user.is_authenticated and current_user.is_admin %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('analytics') }}">
-                            <i class="fas fa-chart-bar me-1"></i>Analytics
-                        </a>
-                    </li>
-                    {% endif %}
                 </ul>
 
-                <div class="navbar-nav ms-auto"></div>
+                <!-- RIGHT SIDE USER MENU -->
+                <div class="navbar-nav ms-auto">
                     {% if current_user.is_authenticated %}
                         <div class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-user me-1"></i>{{ current_user.username }}
                                 {% if current_user.is_admin %}
-                                <span class="badge bg-warning ms-1">Admin</span>
+                                    <span class="badge bg-warning ms-1">Admin</span>
                                 {% endif %}
                             </a>
                             <ul class="dropdown-menu">
                                 {% if current_user.is_admin %}
-                                <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">
-                                    <i class="fas fa-shield-alt me-2"></i>Admin Dashboard
-                                </a></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">
+                                            <i class="fas fa-shield-alt me-2"></i>Admin Dashboard
+                                        </a>
+                                    </li>
                                 {% else %}
-                                <li><a class="dropdown-item" href="{{ url_for('user_dashboard') }}">
-                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                                </a></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('user_dashboard') }}">
+                                            <i class="fas fa-tachometer-alt me-2"></i>User Dashboard
+                                        </a>
+                                    </li>
                                 {% endif %}
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                </a></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('logout') }}">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     {% else %}
-                        <a class="nav-link" href="{{ url_for('login') }}">
-                            <i class="fas fa-sign-in-alt me-1"></i>Login
-                        </a>
-                        <a class="nav-link" href="{{ url_for('register') }}">
-                            <i class="fas fa-user-plus me-1"></i>Register
-                        </a>
+                        {# LOGIN & REGISTER REMOVED — EMPTY ELSE BLOCK #}
                     {% endif %}
                 </div>
             </div>
@@ -99,49 +82,10 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="main-content">
+    <main class="main-content" style="margin-top: 80px;">
         {% block content %}{% endblock %}
     </main>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-light py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5><i class="fas fa-shield-alt me-2"></i>StealthCAPTCHA</h5>
-                    <p class="text-muted">Next-generation invisible bot detection using behavioral analysis and machine learning.</p>
-                </div>
-                <div class="col-md-3">
-                    <h6>Features</h6>
-                    <ul class="list-unstyled text-muted">
-                        <li><i class="fas fa-check me-2"></i>Invisible Detection</li>
-                        <li><i class="fas fa-check me-2"></i>Behavioral Analysis</li>
-                        <li><i class="fas fa-check me-2"></i>ML Classification</li>
-                        <li><i class="fas fa-check me-2"></i>Real-time Processing</li>
-                    </ul>
-                </div>
-                <div class="col-md-3">
-                    <h6>Technology</h6>
-                    <ul class="list-unstyled text-muted">
-                        <li><i class="fab fa-python me-2"></i>Python & Flask</li>
-                        <li><i class="fas fa-database me-2"></i>PostgreSQL</li>
-                        <li><i class="fas fa-brain me-2"></i>Machine Learning</li>
-                        <li><i class="fab fa-js-square me-2"></i>JavaScript</li>
-                    </ul>
-                </div>
-            </div>
-            <hr class="text-muted">
-            <div class="row">
-                <div class="col-md-6">
-                    <p class="text-muted mb-0">&copy; 2025 StealthCAPTCHA. Academic Project.</p>
-                </div>
-                <div class="col-md-6 text-end">
-                    <p class="text-muted mb-0">Enhancing Web Security Through AI</p>
-                </div>
-            </div>
-        </div>
-    </footer>
-
+    
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 

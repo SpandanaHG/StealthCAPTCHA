@@ -1,346 +1,321 @@
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.preprocessing import StandardScaler
 import joblib
 import os
 import logging
-from datetime import datetime
 from app import db
 from models import ModelMetrics
 
+
 class MLModel:
+    """Machine-Learning engine for StealthCAPTCHA."""
+
     def __init__(self):
-        self.model = RandomForestClassifier(
-            n_estimators=100,
+        # Initialize models
+        self.rf_model = RandomForestClassifier(
+            n_estimators=120,
             max_depth=10,
             random_state=42,
-            class_weight='balanced'
+            class_weight="balanced"
         )
+
+        self.svm_model = SVC(
+            kernel="rbf",
+            probability=True,
+            random_state=42,
+            class_weight="balanced"
+        )
+
+        self.model = None
         self.scaler = StandardScaler()
         self.is_trained = False
-        self.model_version = "1.0"
-        
-        # Try to load existing model
+        self.model_version = "3.4"
+
+        # Logging setup
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] %(message)s",
+            handlers=[
+                logging.FileHandler("training_logs.txt"),
+                logging.StreamHandler()
+            ]
+        )
+
+        # Load existing model if available
         self.load_model()
-    
+
+    # ---------------------------------------------------------------------
+    # FEATURE EXTRACTION
+    # ---------------------------------------------------------------------
     def extract_features(self, behavioral_data):
-        """Extract features from behavioral data for ML prediction"""
-        features = []
-        
-        # Mouse movement features
-        mouse_movements = behavioral_data.get('mouse_movements', [])
-        if mouse_movements:
-            # Calculate velocities
-            velocities = []
-            for i in range(1, len(mouse_movements)):
-                prev = mouse_movements[i-1]
-                curr = mouse_movements[i]
-                time_diff = (curr['timestamp'] - prev['timestamp']) / 1000.0  # Convert to seconds
-                if time_diff > 0:
-                    distance = np.sqrt((curr['x'] - prev['x'])**2 + (curr['y'] - prev['y'])**2)
-                    velocity = distance / time_diff
-                    velocities.append(velocity)
-            
-            if velocities:
-                features.extend([
-                    np.mean(velocities),  # Average velocity
-                    np.std(velocities),   # Velocity standard deviation
-                    len(velocities),      # Number of movements
-                    np.max(velocities) if velocities else 0,  # Max velocity
-                    np.min(velocities) if velocities else 0   # Min velocity
-                ])
-            else:
-                features.extend([0, 0, 0, 0, 0])
+        """Convert behavioral JSON data to numerical features."""
+        f = []
+
+        # Mouse movements
+        mv = behavioral_data.get("mouse_movements", [])
+        if mv:
+            vels = []
+            for i in range(1, len(mv)):
+                prev, curr = mv[i - 1], mv[i]
+                t = (curr["timestamp"] - prev["timestamp"]) / 1000.0
+                if t > 0:
+                    dist = np.hypot(curr["x"] - prev["x"], curr["y"] - prev["y"])
+                    vels.append(dist / t)
+            f += [
+                np.mean(vels) if vels else 0,
+                np.std(vels) if vels else 0,
+                len(vels),
+                np.max(vels) if vels else 0,
+                np.min(vels) if vels else 0,
+            ]
         else:
-            features.extend([0, 0, 0, 0, 0])
-        
-        # Click pattern features
-        click_patterns = behavioral_data.get('click_patterns', [])
-        if click_patterns:
-            # Click intervals
-            intervals = []
-            for i in range(1, len(click_patterns)):
-                interval = (click_patterns[i]['timestamp'] - click_patterns[i-1]['timestamp']) / 1000.0
-                intervals.append(interval)
-            
-            features.extend([
-                len(click_patterns),  # Number of clicks
-                np.mean(intervals) if intervals else 0,  # Average click interval
-                np.std(intervals) if intervals else 0,   # Click interval variance
-            ])
+            f += [0, 0, 0, 0, 0]
+
+        # Click patterns
+        cp = behavioral_data.get("click_patterns", [])
+        if cp:
+            intervals = [(cp[i]["timestamp"] - cp[i - 1]["timestamp"]) / 1000.0 for i in range(1, len(cp))]
+            f += [len(cp), np.mean(intervals) if intervals else 0, np.std(intervals) if intervals else 0]
         else:
-            features.extend([0, 0, 0])
-        
-        # Keystroke pattern features
-        keystroke_patterns = behavioral_data.get('keystroke_patterns', [])
-        if keystroke_patterns:
-            # Dwell times (key press duration)
-            dwell_times = [k.get('duration', 0) for k in keystroke_patterns]
-            
-            # Flight times (time between key presses)
-            flight_times = []
-            for i in range(1, len(keystroke_patterns)):
-                flight_time = keystroke_patterns[i]['timestamp'] - keystroke_patterns[i-1]['timestamp']
-                flight_times.append(flight_time)
-            
-            features.extend([
-                len(keystroke_patterns),  # Number of keystrokes
-                np.mean(dwell_times) if dwell_times else 0,  # Average dwell time
-                np.std(dwell_times) if dwell_times else 0,   # Dwell time variance
-                np.mean(flight_times) if flight_times else 0,  # Average flight time
-                np.std(flight_times) if flight_times else 0,   # Flight time variance
-            ])
+            f += [0, 0, 0]
+
+        # Keystrokes
+        ks = behavioral_data.get("keystroke_patterns", [])
+        if ks:
+            dwell = [k.get("duration", 0) for k in ks]
+            flight = [ks[i]["timestamp"] - ks[i - 1]["timestamp"] for i in range(1, len(ks))]
+            f += [
+                len(ks),
+                np.mean(dwell) if dwell else 0,
+                np.std(dwell) if dwell else 0,
+                np.mean(flight) if flight else 0,
+                np.std(flight) if flight else 0,
+            ]
         else:
-            features.extend([0, 0, 0, 0, 0])
-        
-        # Scroll pattern features
-        scroll_patterns = behavioral_data.get('scroll_patterns', [])
-        if scroll_patterns:
-            scroll_speeds = []
-            for scroll in scroll_patterns:
-                speed = abs(scroll.get('deltaY', 0))
-                scroll_speeds.append(speed)
-            
-            features.extend([
-                len(scroll_patterns),  # Number of scroll events
-                np.mean(scroll_speeds) if scroll_speeds else 0,  # Average scroll speed
-                np.std(scroll_speeds) if scroll_speeds else 0,   # Scroll speed variance
-            ])
+            f += [0, 0, 0, 0, 0]
+
+        # Scrolls
+        sp = behavioral_data.get("scroll_patterns", [])
+        if sp:
+            speeds = [abs(s.get("deltaY", 0)) for s in sp]
+            f += [len(sp), np.mean(speeds), np.std(speeds)]
         else:
-            features.extend([0, 0, 0])
-        
-        # Device/Browser features (encoded as numerical values)
-        user_agent = behavioral_data.get('user_agent', '')
-        features.extend([
-            1 if 'Chrome' in user_agent else 0,
-            1 if 'Firefox' in user_agent else 0,
-            1 if 'Safari' in user_agent else 0,
-            1 if 'Mobile' in user_agent else 0,
-            len(user_agent),  # User agent length
-        ])
-        
-        # Screen resolution features
-        screen_res = behavioral_data.get('screen_resolution', '0x0')
+            f += [0, 0, 0]
+
+        # Browser/device info
+        ua = behavioral_data.get("user_agent", "")
+        f += [
+            int("Chrome" in ua),
+            int("Firefox" in ua),
+            int("Safari" in ua),
+            int("Mobile" in ua),
+            len(ua),
+        ]
+
+        # Screen resolution
+        sr = behavioral_data.get("screen_resolution", "0x0")
         try:
-            width, height = map(int, screen_res.split('x'))
-            features.extend([width, height, width * height])
-        except:
-            features.extend([0, 0, 0])
-        
-        return np.array(features).reshape(1, -1)
-    
-    def generate_training_data(self, num_samples=1000):
-        """Generate synthetic training data for initial model training"""
-        logging.info("Generating synthetic training data...")
-        
-        X = []
-        y = []
-        
-        # Generate human-like patterns
-        for _ in range(num_samples // 2):
-            # Human mouse movements: more natural, varied velocities
-            mouse_velocity_avg = np.random.normal(150, 50)
-            mouse_velocity_std = np.random.normal(75, 25)
-            num_movements = np.random.randint(10, 100)
-            max_velocity = mouse_velocity_avg + np.random.normal(200, 50)
-            min_velocity = max(0, mouse_velocity_avg - np.random.normal(100, 30))
-            
-            # Human click patterns: more irregular intervals
-            num_clicks = np.random.randint(1, 20)
-            click_interval_avg = np.random.normal(2.0, 1.0)
-            click_interval_std = np.random.normal(1.5, 0.5)
-            
-            # Human keystroke patterns: natural typing rhythm
-            num_keystrokes = np.random.randint(0, 50)
-            dwell_time_avg = np.random.normal(100, 30)
-            dwell_time_std = np.random.normal(50, 15)
-            flight_time_avg = np.random.normal(150, 50)
-            flight_time_std = np.random.normal(100, 30)
-            
-            # Human scroll patterns: varied speeds
-            num_scrolls = np.random.randint(0, 30)
-            scroll_speed_avg = np.random.normal(50, 20)
-            scroll_speed_std = np.random.normal(30, 10)
-            
-            # Browser features (realistic distribution)
-            chrome = np.random.choice([0, 1], p=[0.3, 0.7])
-            firefox = np.random.choice([0, 1], p=[0.8, 0.2]) if not chrome else 0
-            safari = np.random.choice([0, 1], p=[0.9, 0.1]) if not chrome and not firefox else 0
-            mobile = np.random.choice([0, 1], p=[0.6, 0.4])
-            ua_length = np.random.randint(80, 200)
-            
-            # Screen resolution
-            common_widths = [1920, 1366, 1440, 1280, 1024]
-            common_heights = [1080, 768, 900, 720, 768]
-            width = np.random.choice(common_widths)
-            height = np.random.choice(common_heights)
-            
+            w, h = map(int, sr.split("x"))
+            f += [w, h, w * h]
+        except Exception:
+            f += [0, 0, 0]
+
+        return np.array(f).reshape(1, -1)
+
+    # ---------------------------------------------------------------------
+    # SYNTHETIC TRAINING DATA
+    # ---------------------------------------------------------------------
+    def generate_training_data(self, n=2000):
+        """Generate realistic overlapping synthetic data (humans & bots)."""
+        X, y = [], []
+        rng = np.random.default_rng()
+
+        # Humans
+        for _ in range(n // 2):
+            mouse_velocity_avg = rng.normal(200, 90)
+            mouse_velocity_std = rng.normal(70, 30)
+            num_movements = rng.integers(30, 150)
+            max_velocity = mouse_velocity_avg + rng.normal(100, 50)
+            min_velocity = max(0, mouse_velocity_avg - rng.normal(100, 40))
+
+            num_clicks = rng.integers(2, 40)
+            click_interval_avg = rng.normal(1.2, 0.8)
+            click_interval_std = rng.normal(0.8, 0.5)
+
+            num_keystrokes = rng.integers(5, 80)
+            dwell_time_avg = rng.normal(100, 40)
+            dwell_time_std = rng.normal(60, 30)
+            flight_time_avg = rng.normal(120, 60)
+            flight_time_std = rng.normal(70, 30)
+
+            num_scrolls = rng.integers(5, 40)
+            scroll_speed_avg = rng.normal(70, 30)
+            scroll_speed_std = rng.normal(40, 20)
+
+            chrome = rng.choice([0, 1], p=[0.5, 0.5])
+            firefox = rng.choice([0, 1], p=[0.85, 0.15])
+            safari = rng.choice([0, 1], p=[0.95, 0.05])
+            mobile = rng.choice([0, 1], p=[0.5, 0.5])
+            ua_length = rng.integers(70, 200)
+
+            width = rng.choice([1920, 1366, 1440, 1280, 1024])
+            height = rng.choice([1080, 900, 768, 720])
             features = [
-                mouse_velocity_avg, mouse_velocity_std, num_movements, max_velocity, min_velocity,
+                mouse_velocity_avg, mouse_velocity_std, num_movements,
+                max_velocity, min_velocity,
                 num_clicks, click_interval_avg, click_interval_std,
-                num_keystrokes, dwell_time_avg, dwell_time_std, flight_time_avg, flight_time_std,
+                num_keystrokes, dwell_time_avg, dwell_time_std,
+                flight_time_avg, flight_time_std,
                 num_scrolls, scroll_speed_avg, scroll_speed_std,
                 chrome, firefox, safari, mobile, ua_length,
                 width, height, width * height
             ]
-            
             X.append(features)
-            y.append(1)  # Human
-        
-        # Generate bot-like patterns
-        for _ in range(num_samples // 2):
-            # Bot mouse movements: more uniform, mechanical
-            mouse_velocity_avg = np.random.normal(300, 20)  # Higher, more consistent
-            mouse_velocity_std = np.random.normal(10, 5)    # Lower variance
-            num_movements = np.random.randint(50, 200)      # More movements
-            max_velocity = mouse_velocity_avg + np.random.normal(50, 10)
-            min_velocity = mouse_velocity_avg - np.random.normal(50, 10)
-            
-            # Bot click patterns: very regular intervals
-            num_clicks = np.random.randint(5, 50)
-            click_interval_avg = np.random.normal(0.5, 0.1)  # Very fast, regular
-            click_interval_std = np.random.normal(0.05, 0.02)  # Very low variance
-            
-            # Bot keystroke patterns: mechanical typing
-            num_keystrokes = np.random.randint(10, 100)
-            dwell_time_avg = np.random.normal(50, 5)        # Consistent, short
-            dwell_time_std = np.random.normal(5, 2)         # Very low variance
-            flight_time_avg = np.random.normal(50, 5)       # Very consistent
-            flight_time_std = np.random.normal(5, 2)        # Very low variance
-            
-            # Bot scroll patterns: mechanical scrolling
-            num_scrolls = np.random.randint(0, 10)
-            scroll_speed_avg = np.random.normal(100, 5)     # Very consistent
-            scroll_speed_std = np.random.normal(5, 2)       # Low variance
-            
-            # Browser features (bot-like patterns)
-            chrome = np.random.choice([0, 1], p=[0.1, 0.9])  # Bots often use Chrome
-            firefox = 0
-            safari = 0
-            mobile = np.random.choice([0, 1], p=[0.9, 0.1])  # Usually desktop
-            ua_length = np.random.randint(50, 120)           # Shorter UA strings
-            
-            # Screen resolution (common bot resolutions)
-            width = np.random.choice([1920, 1366, 1024])
-            height = np.random.choice([1080, 768, 768])
-            
+            y.append(1)
+
+        # Bots
+        for _ in range(n // 2):
+            mouse_velocity_avg = rng.normal(230, 100)
+            mouse_velocity_std = rng.normal(60, 40)
+            num_movements = rng.integers(40, 160)
+            max_velocity = mouse_velocity_avg + rng.normal(80, 60)
+            min_velocity = max(0, mouse_velocity_avg - rng.normal(100, 50))
+
+            num_clicks = rng.integers(3, 35)
+            click_interval_avg = rng.normal(1.0, 0.6)
+            click_interval_std = rng.normal(0.6, 0.3)
+
+            num_keystrokes = rng.integers(5, 90)
+            dwell_time_avg = rng.normal(85, 35)
+            dwell_time_std = rng.normal(50, 25)
+            flight_time_avg = rng.normal(110, 50)
+            flight_time_std = rng.normal(60, 25)
+
+            num_scrolls = rng.integers(5, 35)
+            scroll_speed_avg = rng.normal(80, 25)
+            scroll_speed_std = rng.normal(35, 15)
+
+            chrome = rng.choice([0, 1], p=[0.4, 0.6])
+            firefox = rng.choice([0, 1], p=[0.9, 0.1])
+            safari = rng.choice([0, 1], p=[0.95, 0.05])
+            mobile = rng.choice([0, 1], p=[0.7, 0.3])
+            ua_length = rng.integers(60, 190)
+
+            width = rng.choice([1920, 1366, 1024])
+            height = rng.choice([1080, 900, 768])
             features = [
-                mouse_velocity_avg, mouse_velocity_std, num_movements, max_velocity, min_velocity,
+                mouse_velocity_avg, mouse_velocity_std, num_movements,
+                max_velocity, min_velocity,
                 num_clicks, click_interval_avg, click_interval_std,
-                num_keystrokes, dwell_time_avg, dwell_time_std, flight_time_avg, flight_time_std,
+                num_keystrokes, dwell_time_avg, dwell_time_std,
+                flight_time_avg, flight_time_std,
                 num_scrolls, scroll_speed_avg, scroll_speed_std,
                 chrome, firefox, safari, mobile, ua_length,
                 width, height, width * height
             ]
-            
             X.append(features)
-            y.append(0)  # Bot
-        
+            y.append(0)
+
         return np.array(X), np.array(y)
-    
+
+    # ---------------------------------------------------------------------
+    # TRAINING
+    # ---------------------------------------------------------------------
+    def _calculate_metrics(self, model, X_test, y_test):
+        from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+        y_pred = model.predict(X_test)
+        return dict(
+            accuracy=accuracy_score(y_test, y_pred),
+            precision=precision_score(y_test, y_pred, zero_division=0),
+            recall=recall_score(y_test, y_pred, zero_division=0),
+            f1_score=f1_score(y_test, y_pred, zero_division=0)
+        )
+
     def train_initial_model(self):
-        """Train the initial model with synthetic data"""
+        """Train SVM first → Random Forest → compare → select best."""
         if self.is_trained:
             return
-        
         try:
-            # Generate training data
             X, y = self.generate_training_data(2000)
-            
-            # Split the data
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, test_size=0.2, random_state=42, stratify=y
-            )
-            
-            # Scale the features
-            X_train_scaled = self.scaler.fit_transform(X_train)
-            X_test_scaled = self.scaler.transform(X_test)
-            
-            # Train the model
-            self.model.fit(X_train_scaled, y_train)
-            
-            # Evaluate the model
-            y_pred = self.model.predict(X_test_scaled)
-            
-            accuracy = accuracy_score(y_test, y_pred)
-            precision = precision_score(y_test, y_pred)
-            recall = recall_score(y_test, y_pred)
-            f1 = f1_score(y_test, y_pred)
-            
-            logging.info(f"Model training completed:")
-            logging.info(f"Accuracy: {accuracy:.3f}")
-            logging.info(f"Precision: {precision:.3f}")
-            logging.info(f"Recall: {recall:.3f}")
-            logging.info(f"F1-score: {f1:.3f}")
-            
-            # Save model metrics to database
-            metrics = ModelMetrics(
-                accuracy=accuracy,
-                precision=precision,
-                recall=recall,
-                f1_score=f1,
-                training_samples=len(X),
-                human_samples=len(y[y == 1]),
-                bot_samples=len(y[y == 0]),
-                model_version=self.model_version
-            )
-            
-            db.session.add(metrics)
-            db.session.commit()
-            
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+            X_train_s, X_test_s = self.scaler.fit_transform(X_train), self.scaler.transform(X_test)
+
+            results = {}
+
+            logging.info("Training SVM first...")
+            self.svm_model.fit(X_train_s, y_train)
+            results["SVM"] = self._calculate_metrics(self.svm_model, X_test_s, y_test)
+            logging.info(f"SVM Accuracy: {results['SVM']['accuracy']:.4f}")
+
+            logging.info("Training Random Forest...")
+            self.rf_model.fit(X_train_s, y_train)
+            results["Random Forest"] = self._calculate_metrics(self.rf_model, X_test_s, y_test)
+            logging.info(f"Random Forest Accuracy: {results['Random Forest']['accuracy']:.4f}")
+
+            best = max(results, key=lambda k: results[k]["accuracy"])
+            self.model = self.rf_model if best == "Random Forest" else self.svm_model
             self.is_trained = True
+
+            df = pd.DataFrame(results).T
+            logging.info("\n--- MODEL COMPARISON RESULTS ---\n%s", df.to_string(float_format="%.4f"))
+            logging.info(f"✅ Selected Model: {best}\n--------------------------------")
+
+            m = results[best]
+            db.session.add(ModelMetrics(
+                accuracy=m["accuracy"],
+                precision=m["precision"],
+                recall=m["recall"],
+                f1_score=m["f1_score"],
+                training_samples=len(X),
+                human_samples=int(sum(y)),
+                bot_samples=int(len(y) - sum(y)),
+                model_version=self.model_version
+            ))
+            db.session.commit()
             self.save_model()
-            
+
         except Exception as e:
-            logging.error(f"Error training model: {str(e)}")
-    
+            logging.error(f"Error training model: {e}", exc_info=True)
+
+    # ---------------------------------------------------------------------
+    # PREDICT / SAVE / LOAD
+    # ---------------------------------------------------------------------
     def predict(self, features):
-        """Make a prediction on behavioral features"""
+        """Predict human/bot label."""
         if not self.is_trained:
             self.train_initial_model()
-        
         try:
-            # Scale features
-            features_scaled = self.scaler.transform(features)
-            
-            # Make prediction
-            prediction_proba = self.model.predict_proba(features_scaled)[0]
-            prediction = self.model.predict(features_scaled)[0]
-            
-            # Get confidence (probability of predicted class)
-            confidence = prediction_proba[prediction]
-            
-            # Convert to human-readable format
-            prediction_label = 'human' if prediction == 1 else 'bot'
-            
-            return prediction_label, float(confidence)
-        
+            scaled = self.scaler.transform(features)
+            proba = self.model.predict_proba(scaled)[0]
+            pred = self.model.predict(scaled)[0]
+            return ("human" if pred == 1 else "bot", float(proba[pred]))
         except Exception as e:
-            logging.error(f"Error making prediction: {str(e)}")
-            return 'unknown', 0.5
-    
+            logging.error(f"Error predicting: {e}")
+            return "unknown", 0.5
+
     def save_model(self):
-        """Save the trained model and scaler to disk"""
         try:
-            os.makedirs('models', exist_ok=True)
-            joblib.dump(self.model, 'models/stealth_captcha_model.pkl')
-            joblib.dump(self.scaler, 'models/stealth_captcha_scaler.pkl')
-            logging.info("Model saved successfully")
+            os.makedirs("models", exist_ok=True)
+            joblib.dump(self.model, "models/stealth_captcha_model.pkl")
+            joblib.dump(self.scaler, "models/stealth_captcha_scaler.pkl")
+            logging.info("✅ Model saved successfully.")
         except Exception as e:
-            logging.error(f"Error saving model: {str(e)}")
-    
+            logging.error(f"Error saving model: {e}")
+
     def load_model(self):
-        """Load the trained model and scaler from disk"""
         try:
-            if os.path.exists('models/stealth_captcha_model.pkl') and os.path.exists('models/stealth_captcha_scaler.pkl'):
-                self.model = joblib.load('models/stealth_captcha_model.pkl')
-                self.scaler = joblib.load('models/stealth_captcha_scaler.pkl')
+            if all(os.path.exists(f) for f in [
+                "models/stealth_captcha_model.pkl", "models/stealth_captcha_scaler.pkl"
+            ]):
+                self.model = joblib.load("models/stealth_captcha_model.pkl")
+                self.scaler = joblib.load("models/stealth_captcha_scaler.pkl")
                 self.is_trained = True
-                logging.info("Model loaded successfully")
+                logging.info("✅ Model loaded successfully.")
             else:
-                logging.info("No saved model found, will train new model")
+                logging.info("No saved model found. Training a new one...")
         except Exception as e:
-            logging.error(f"Error loading model: {str(e)}")
+            logging.error(f"Error loading model: {e}")

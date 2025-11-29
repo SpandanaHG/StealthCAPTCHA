@@ -83,8 +83,10 @@
                 <div class="card-header">
                     <h6><i class="fas fa-chart-pie me-2"></i>Detection Overview</h6>
                 </div>
-                <div class="card-body">
-                    <canvas id="detectionChart" width="400" height="200"></canvas>
+                <div class="card-body ">
+                    <div style="width: 300px; height:300px; margin:0 auto;">
+                        <canvas id="detectionChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -99,47 +101,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- Model Performance -->
-    {% if model_metrics %}
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h6><i class="fas fa-brain me-2"></i>ML Model Performance</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-primary">{{ "%.3f"|format(model_metrics.accuracy) }}</h4>
-                                <p class="mb-0">Accuracy</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-success">{{ "%.3f"|format(model_metrics.precision) }}</h4>
-                                <p class="mb-0">Precision</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-warning">{{ "%.3f"|format(model_metrics.recall) }}</h4>
-                                <p class="mb-0">Recall</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h4 class="text-info">{{ "%.3f"|format(model_metrics.f1_score) }}</h4>
-                                <p class="mb-0">F1-Score</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
     
     <!-- Users Management -->
     <div class="row">
@@ -165,11 +126,20 @@
                             </thead>
                             <tbody>
                                 {% for user in users %}
-                                <tr {% if user.is_likely_bot %}class="table-warning"{% endif %}>
+                                    <tr 
+                                        {% if user.is_blocked %}
+                                            class="table-danger text-white"
+                                        {% elif user.is_likely_bot %}
+                                            class="table-warning"
+                                        {% endif %}
+                                    >
                                     <td>
                                         <strong>{{ user.username }}</strong>
-                                        {% if user.is_likely_bot %}
-                                        <i class="fas fa-robot text-warning ms-1" title="Suspected Bot"></i>
+
+                                        {% if user.is_blocked %}
+                                            <i class="fas fa-ban text-danger ms-2" title="Blocked due to bot detection"></i>
+                                        {% elif user.is_likely_bot %}
+                                            <i class="fas fa-robot text-warning ms-2" title="Suspected Bot"></i>
                                         {% endif %}
                                     </td>
                                     <td>{{ user.email }}</td>

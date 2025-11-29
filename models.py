@@ -1,4 +1,5 @@
-from app import db
+#from app import db
+from extensions import db
 from datetime import datetime
 from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -19,7 +20,7 @@ class BehavioralData(db.Model):
     # Typing patterns
     keystroke_patterns = db.Column(db.JSON)  # Array of {key, timestamp, duration}
     
-    # Browser/Device fingerprint
+    
     user_agent = db.Column(db.Text)
     screen_resolution = db.Column(db.String(20))
     timezone = db.Column(db.String(50))

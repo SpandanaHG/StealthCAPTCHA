@@ -1,6 +1,8 @@
 /**
  * StealthCAPTCHA Behavioral Tracker
  * Invisible behavioral analysis system for bot detection
+ * * FIX IMPLEMENTED: Added 'Total' counters for all metrics to prevent live
+ * display from resetting when data arrays are trimmed.
  */
 
 (function() {
@@ -33,6 +35,13 @@
     let dataCollectionTimer = null;
     let lastMouseEvent = null;
     let keystrokeStartTime = null;
+
+    // --- ADDED GLOBAL TOTAL COUNTERS (These will NEVER reset) ---
+    let mouseMovementTotal = 0;
+    let clickPatternTotal = 0;
+    let keystrokePatternTotal = 0;
+    let scrollPatternTotal = 0;
+    // -----------------------------------------------------------
 
     /**
      * Initialize the behavioral tracker
@@ -148,7 +157,10 @@
         behavioralData.mouseMovements.push(mouseEvent);
         lastMouseEvent = mouseEvent;
 
-        // Limit array size
+        // FIX: Increment the TOTAL count
+        mouseMovementTotal++;
+
+        // Limit array size (This limits the data sent to the server, NOT the counter)
         if (behavioralData.mouseMovements.length > CONFIG.maxMouseEvents) {
             behavioralData.mouseMovements.shift();
         }
@@ -169,6 +181,9 @@
         };
 
         behavioralData.clickPatterns.push(clickEvent);
+
+        // FIX: Increment the TOTAL count
+        clickPatternTotal++;
 
         // Limit array size
         if (behavioralData.clickPatterns.length > CONFIG.maxClickEvents) {
@@ -228,6 +243,9 @@
         };
 
         behavioralData.keystrokePatterns.push(keystrokeEvent);
+        
+        // FIX: Increment the TOTAL count
+        keystrokePatternTotal++;
     }
 
     function handleKeyUp(event) {
@@ -241,6 +259,9 @@
         };
 
         behavioralData.keystrokePatterns.push(keystrokeEvent);
+
+        // FIX: Increment the TOTAL count
+        keystrokePatternTotal++;
 
         // Limit array size
         if (behavioralData.keystrokePatterns.length > CONFIG.maxKeystrokeEvents) {
@@ -261,6 +282,9 @@
 
         behavioralData.scrollPatterns.push(scrollEvent);
 
+        // FIX: Increment the TOTAL count
+        scrollPatternTotal++;
+
         // Limit array size
         if (behavioralData.scrollPatterns.length > CONFIG.maxScrollEvents) {
             behavioralData.scrollPatterns.shift();
@@ -277,6 +301,9 @@
         };
 
         behavioralData.scrollPatterns.push(wheelEvent);
+
+        // FIX: Increment the TOTAL count
+        scrollPatternTotal++;
     }
 
     /**
@@ -369,6 +396,7 @@
         // Prepare data payload
         const payload = {
             sessionId: behavioralData.sessionId,
+            // These arrays are limited to CONFIG.maxXXXEvents to save bandwidth
             mouseMovements: behavioralData.mouseMovements.slice(-CONFIG.maxMouseEvents),
             clickPatterns: behavioralData.clickPatterns.slice(-CONFIG.maxClickEvents),
             keystrokePatterns: behavioralData.keystrokePatterns.slice(-CONFIG.maxKeystrokeEvents),
@@ -400,7 +428,7 @@
         })
         .then(data => {
             console.log('StealthCAPTCHA: Data sent successfully', data);
-            // Clear sent data but keep some for continuity
+            // Clear sent data but keep some for continuity (this is why we need total counters)
             behavioralData.mouseMovements = behavioralData.mouseMovements.slice(-10);
             behavioralData.clickPatterns = behavioralData.clickPatterns.slice(-10);
             behavioralData.keystrokePatterns = behavioralData.keystrokePatterns.slice(-10);
@@ -427,7 +455,7 @@
         const clickIntervals = [];
         for (let i = 1; i < behavioralData.clickPatterns.length; i++) {
             const interval = behavioralData.clickPatterns[i].timestamp -
-                           behavioralData.clickPatterns[i-1].timestamp;
+                            behavioralData.clickPatterns[i-1].timestamp;
             clickIntervals.push(interval);
         }
 
@@ -442,10 +470,14 @@
         return {
             sessionId: behavioralData.sessionId,
             sessionDuration: sessionDuration,
-            mouseEventCount: behavioralData.mouseMovements.length,
-            clickEventCount: behavioralData.clickPatterns.length,
-            keystrokeEventCount: behavioralData.keystrokePatterns.length,
-            scrollEventCount: behavioralData.scrollPatterns.length,
+            
+            // --- RETURN THE NEW TOTAL COUNTERS ---
+            mouseEventCount: mouseMovementTotal,
+            clickEventCount: clickPatternTotal,
+            keystrokeEventCount: keystrokePatternTotal,
+            scrollEventCount: scrollPatternTotal,
+            // -------------------------------------
+
             avgMouseVelocity: mouseVelocities.length > 0 ?
                 mouseVelocities.reduce((a, b) => a + b, 0) / mouseVelocities.length : 0,
             avgClickInterval: clickIntervals.length > 0 ?
@@ -464,10 +496,18 @@
             return;
         }
 
+        // Include the most recent event arrays so the server can analyze the CURRENT task data
         const detectionPayload = {
             sessionId: behavioralData.sessionId,
             page_url: window.location.pathname,
-            action_type: 'general'
+            action_type: 'general',
+            // current event arrays (match server expected keys)
+            mouseMovements: behavioralData.mouseMovements ? behavioralData.mouseMovements.slice(-CONFIG.maxMouseEvents) : [],
+            clickPatterns: behavioralData.clickPatterns ? behavioralData.clickPatterns.slice(-CONFIG.maxClickEvents) : [],
+            keystrokePatterns: behavioralData.keystrokePatterns ? behavioralData.keystrokePatterns.slice(-CONFIG.maxKeystrokeEvents) : [],
+            scrollPatterns: behavioralData.scrollPatterns ? behavioralData.scrollPatterns.slice(-CONFIG.maxScrollEvents) : [],
+            deviceFingerprint: behavioralData.deviceFingerprint || {},
+            timestamp: Date.now()
         };
 
         fetch('/api/detect_bot', {
@@ -534,16 +574,23 @@
         stop: stop,
         getCurrentMetrics: getCurrentMetrics,
         detectBot: detectBot,
+        // Expose raw data (for debugging, but getCurrentMetrics should be used for display)
+        getData: () => behavioralData, 
+        behavioralData: behavioralData,
         isTracking: () => isTracking
     };
 
+    function autoInit() {
+        // Pass null instead of window.taskSessionId to ensure init runs, even if 
+        // the taskSessionId variable is missing on this page.
+        window.behavioralTracker.init(null);
+    }
+
     // Auto-initialize when DOM is ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            init(window.taskSessionId);
-        });
+        document.addEventListener('DOMContentLoaded', autoInit);
     } else {
-        init(window.taskSessionId);
+        autoInit();
     }
 
 })();
